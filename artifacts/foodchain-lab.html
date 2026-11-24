@@ -6,29 +6,631 @@
 <title>먹이사슬 실험실</title>
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='16' fill='%237A49FF'/%3E%3Cpolyline points='10,44 24,28 36,36 54,16' fill='none' stroke='%23FFD35C' stroke-width='7' stroke-linecap='round' stroke-linejoin='round'/%3E%3Ccircle cx='54' cy='16' r='5' fill='%23fff'/%3E%3C/svg%3E">
 <style>
-/* ==CSS1== */
-/* ==CSS2== */
-/* ==CSS3== */
+:root{
+  --bg:#F5F2FE; --card:#FFFFFF; --ink:#2E2849; --muted:#7A72A0;
+  --line:#E7E1FA; --grid:#D9D2F2;
+  --purple:#7A49FF; --purple-deep:#5730C9; --purple-soft:#EDE6FF;
+  --coral:#FF8A7A; --coral-soft:#FFE9E6;
+  --sun:#FFD35C; --mint:#3FBF9C; --mint-soft:#E2F8F1;
+  --leaf:#6BC24A; --leaf-soft:#EAF6E2;
+  --shadow:0 10px 24px rgba(87,48,201,.10);
+}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{
+  font-family:"Segoe UI","Malgun Gothic","맑은 고딕",sans-serif;
+  color:var(--ink); background:var(--bg);
+  background-image:radial-gradient(var(--grid) 1.2px,transparent 1.2px);
+  background-size:24px 24px;
+}
+#app{max-width:1060px;margin:0 auto;padding:14px 18px 30px}
+#topbar{display:flex;align-items:center;gap:14px;flex-wrap:wrap;margin-bottom:12px}
+.brand{display:flex;align-items:center;gap:10px;font-size:20px;font-weight:800}
+.brand svg{width:44px;height:44px}
+.brand b{color:var(--purple-deep)}
+.brand .zz{color:var(--leaf)}
+.top-actions{margin-left:auto;display:flex;gap:10px;align-items:center}
+.chip{display:inline-flex;align-items:center;gap:6px;background:var(--card);border:2px solid var(--grid);
+  border-radius:999px;padding:6px 14px;font-size:14px;font-weight:700}
+.icon-btn{width:38px;height:38px;border-radius:50%;border:2px solid var(--grid);background:var(--card);
+  color:var(--ink);display:grid;place-items:center;cursor:pointer}
+.icon-btn[aria-pressed="true"]{color:var(--muted)}
+.icon-btn[aria-pressed="true"] .snd-waves{opacity:0}
+
+/* ── 탭 ── */
+#tabs{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px}
+.tab{display:flex;align-items:center;gap:8px;border:2.5px solid var(--line);background:var(--card);
+  border-radius:999px;padding:9px 18px;font-family:inherit;font-size:15px;font-weight:800;
+  color:var(--muted);cursor:pointer}
+.tab .tn{width:24px;height:24px;border-radius:50%;border:2px solid currentColor;display:grid;
+  place-items:center;font-size:12px}
+.tab.active{border-color:var(--purple);color:var(--purple-deep);background:var(--purple-soft)}
+.tab.done{border-color:var(--mint);color:var(--mint);background:var(--mint-soft)}
+
+/* ── 배치 ── */
+.stage{display:grid;grid-template-columns:300px 1fr;gap:16px;align-items:start}
+.panel{display:flex;flex-direction:column;gap:12px}
+.box{background:var(--card);border:2.5px solid var(--line);border-radius:18px;padding:14px}
+.box-title{font-size:13px;font-weight:800;color:var(--purple-deep);letter-spacing:.06em;margin-bottom:10px}
+#mascotRow{display:flex;gap:10px;align-items:flex-start}
+#mascotBig{width:56px;height:56px;flex:none}
+.bubble{position:relative;background:var(--mint-soft);border:2px solid var(--mint);border-radius:14px;
+  padding:10px 12px;font-size:14px;font-weight:700;line-height:1.55;min-height:44px;flex:1}
+.bubble.warn{background:var(--coral-soft);border-color:var(--coral)}
+.bubble.cheer{background:var(--purple-soft);border-color:var(--purple)}
+
+.btn{border:0;border-radius:14px;background:var(--purple);color:#fff;font-family:inherit;
+  font-size:16px;font-weight:800;padding:12px 22px;cursor:pointer;box-shadow:0 4px 0 var(--purple-deep)}
+.btn:active{transform:translateY(3px);box-shadow:0 1px 0 var(--purple-deep)}
+.btn.wide{width:100%}
+.btn[disabled]{opacity:.45;cursor:not-allowed}
+.choice{border:2.5px solid var(--purple);background:var(--card);color:var(--purple-deep);
+  border-radius:14px;font-family:inherit;font-size:15px;font-weight:800;padding:10px 16px;cursor:pointer}
+.choice.good{border-color:var(--mint);background:var(--mint-soft)}
+.choice.shake{animation:shakeX .25s 2}
+/* ── 사슬 보드 ── */
+.board-card{background:var(--card);border:2.5px solid var(--line);border-radius:22px;
+  padding:18px;box-shadow:var(--shadow)}
+#boardHead{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;margin-bottom:16px}
+#boardTitle{font-size:19px;font-weight:800}
+#boardSub{font-size:13px;font-weight:700;color:var(--muted)}
+#chainBoard{min-height:260px;display:flex;flex-direction:column;justify-content:center;gap:18px}
+.chain-line{display:flex;align-items:center;justify-content:space-between;gap:6px;flex-wrap:nowrap}
+.node{display:flex;flex-direction:column;align-items:center;gap:8px;width:118px;text-align:center}
+.node .pic{width:76px;height:76px;border-radius:50%;background:var(--purple-soft);
+  border:3px solid var(--line);display:grid;place-items:center;overflow:hidden}
+.node .pic svg{width:54px;height:54px}
+.node .nm{font-size:15px;font-weight:800}
+.node .rl{font-size:11.5px;font-weight:800;color:var(--muted);background:var(--bg);
+  border-radius:999px;padding:2px 10px}
+.node.empty .pic{border-style:dashed;background:var(--bg)}
+.node.empty .nm{color:var(--grid)}
+.node.filled .pic{border-color:var(--purple)}
+.node.filled{animation:popIn .35s}
+.node.gone{filter:grayscale(1);opacity:.45;transform:rotate(-6deg)}
+.node.fallen{filter:grayscale(1);opacity:.4;transform:rotate(-12deg) translateY(6px)}
+.node.up .rl{color:var(--mint);background:var(--mint-soft)}
+.node.down .rl{color:var(--coral);background:var(--coral-soft)}
+.arrow{flex:1;height:6px;border-top:4px dashed var(--grid);min-width:24px;position:relative}
+.arrow.solid{border-top-style:solid;border-top-color:var(--purple)}
+.arrow::after{content:"";position:absolute;right:-2px;top:-7px;width:12px;height:12px;
+  border-top:4px solid var(--grid);border-right:4px solid var(--grid);transform:rotate(45deg)}
+.arrow.solid::after{border-top-color:var(--purple);border-right-color:var(--purple)}
+.chain-wrap{position:relative}
+#energyBall{position:absolute;top:26px;width:30px;height:30px;border-radius:50%;
+  background:radial-gradient(circle at 32% 30%, #FFF2B8, var(--sun) 62%, #E8A400);
+  box-shadow:0 0 14px rgba(255,211,92,.85);opacity:0;pointer-events:none;
+  transition:left .8s cubic-bezier(.45,0,.25,1), opacity .3s}
+#energyBall.on{opacity:1}
+.ballSlot{position:absolute;top:0;width:76px;height:76px}
+.zap{position:absolute;top:-6px;width:30px;height:30px}
+
+/* ── 카드 뭉치(탭1) ── */
+#cardRow{display:flex;gap:10px;flex-wrap:wrap}
+.ccard{display:flex;flex-direction:column;align-items:center;gap:6px;min-width:84px;
+  border:2.5px solid var(--line);border-radius:16px;background:var(--card);
+  padding:10px 12px;cursor:pointer;font-family:inherit}
+.ccard svg{width:44px;height:44px}
+.ccard .nm{font-size:14px;font-weight:800;color:var(--ink)}
+.ccard:hover{border-color:var(--purple);transform:translateY(-3px)}
+.ccard.used{opacity:.35;pointer-events:none}
+.bad{animation:shakeX .25s 2;border-color:var(--coral)}
+
+/* ── 실험 버튼·기록 ── */
+.exp-note{font-size:13.5px;font-weight:700;line-height:1.6;background:var(--purple-soft);
+  border-radius:14px;padding:10px 14px;margin-top:10px}
+.exp-done{color:var(--mint);font-weight:800}
+
+/* ── 오버레이 ── */
+.overlay{position:fixed;inset:0;background:rgba(46,40,73,.5);display:flex;align-items:center;
+  justify-content:center;padding:20px;z-index:50}
+.overlay[hidden]{display:none}
+.modal{background:var(--card);border-radius:24px;border:3px solid var(--purple-soft);
+  box-shadow:var(--shadow);max-width:580px;width:100%;padding:26px 28px;text-align:center;
+  max-height:92vh;overflow:auto}
+.modal h2{margin:0 0 6px;font-size:24px;font-weight:800}
+.modal .sub{margin:0 0 16px;color:var(--muted);font-size:14px;font-weight:700}
+.rules{display:grid;grid-template-columns:1fr 1fr;gap:10px;text-align:left;margin:0 0 18px}
+.rule{background:var(--bg);border-radius:14px;padding:10px 12px}
+.rule b{color:var(--purple-deep);font-size:15px}
+.rule p{margin:3px 0 0;font-size:13px;color:var(--muted);font-weight:600;line-height:1.5}
+.starsRow{display:flex;gap:8px;justify-content:center;margin:10px 0 14px}
+.starsRow svg{width:42px;height:42px}
+.star-big{fill:var(--sun);stroke:var(--sun)}
+.star-off{fill:none;stroke:var(--grid)}
+
+@keyframes popIn{0%{transform:scale(.6)}70%{transform:scale(1.12)}100%{transform:scale(1)}}
+@keyframes shakeX{25%{transform:translateX(-4px)}75%{transform:translateX(4px)}}
+@keyframes blinkArrow{50%{opacity:.3}}
+@media (max-width:820px){.stage{grid-template-columns:1fr}.rules{grid-template-columns:1fr}}
+@media (prefers-reduced-motion:reduce){
+  *,*::before,*::after{animation-duration:.01ms !important;transition-duration:.01ms !important}
+}
 </style>
 </head>
 <body>
 
 <svg width="0" height="0" style="position:absolute" aria-hidden="true">
-  <!-- ==SYMBOLS== -->
+  <symbol id="sunSym" viewBox="0 0 64 64">
+    <g stroke="#E8A400" stroke-width="3.5" stroke-linecap="round">
+      <line x1="32" y1="4" x2="32" y2="12"/><line x1="32" y1="52" x2="32" y2="60"/>
+      <line x1="4" y1="32" x2="12" y2="32"/><line x1="52" y1="32" x2="60" y2="32"/>
+      <line x1="12" y1="12" x2="18" y2="18"/><line x1="46" y1="46" x2="52" y2="52"/>
+      <line x1="52" y1="12" x2="46" y2="18"/><line x1="18" y1="46" x2="12" y2="52"/>
+    </g>
+    <circle cx="32" cy="32" r="17" fill="#FFD35C"/>
+    <circle cx="26" cy="29" r="2.6" fill="#2E2849"/><circle cx="38" cy="29" r="2.6" fill="#2E2849"/>
+    <path d="M26 36 q6 4.5 12 0" fill="none" stroke="#2E2849" stroke-width="2.4" stroke-linecap="round"/>
+    <circle cx="21" cy="34" r="2" fill="#FF8A7A" opacity=".7"/><circle cx="43" cy="34" r="2" fill="#FF8A7A" opacity=".7"/>
+  </symbol>
+  <symbol id="grassSym" viewBox="0 0 64 64">
+    <line x1="8" y1="58" x2="56" y2="58" stroke="#B9AEE8" stroke-width="3" stroke-linecap="round"/>
+    <path d="M18 58 C14 44 16 32 24 22" fill="none" stroke="#6BC24A" stroke-width="6" stroke-linecap="round"/>
+    <path d="M32 58 C31 40 32 26 36 14" fill="none" stroke="#4C9E35" stroke-width="6" stroke-linecap="round"/>
+    <path d="M46 58 C50 46 48 36 42 28" fill="none" stroke="#6BC24A" stroke-width="6" stroke-linecap="round"/>
+    <circle cx="36" cy="12" r="4" fill="#FFD35C"/>
+  </symbol>
+  <symbol id="locustSym" viewBox="0 0 64 64">
+    <ellipse cx="34" cy="38" rx="18" ry="11" fill="#7A49FF" transform="rotate(-14 34 38)"/>
+    <ellipse cx="30" cy="34" rx="10" ry="7" fill="#9B7BFF" transform="rotate(-14 30 34)"/>
+    <circle cx="49" cy="27" r="6.5" fill="#9B7BFF"/>
+    <circle cx="51" cy="25.5" r="2" fill="#2E2849"/>
+    <path d="M54 21 q4 -6 8 -8" fill="none" stroke="#5730C9" stroke-width="2.5" stroke-linecap="round"/>
+    <path d="M20 45 L10 54 M24 48 L18 58" stroke="#5730C9" stroke-width="2.5" stroke-linecap="round"/>
+    <path d="M12 34 L26 40" stroke="#5730C9" stroke-width="3" stroke-linecap="round"/>
+  </symbol>
+  <symbol id="frogSym" viewBox="0 0 64 64">
+    <ellipse cx="32" cy="40" rx="22" ry="16" fill="#3FBF9C"/>
+    <circle cx="21" cy="22" r="9" fill="#3FBF9C"/><circle cx="43" cy="22" r="9" fill="#3FBF9C"/>
+    <circle cx="21" cy="21" r="4.5" fill="#fff"/><circle cx="43" cy="21" r="4.5" fill="#fff"/>
+    <circle cx="22" cy="22" r="2.2" fill="#2E2849"/><circle cx="42" cy="22" r="2.2" fill="#2E2849"/>
+    <path d="M24 40 q8 6 16 0" fill="none" stroke="#2E2849" stroke-width="2.4" stroke-linecap="round"/>
+    <circle cx="14" cy="38" r="2.6" fill="#FF8A7A" opacity=".6"/><circle cx="50" cy="38" r="2.6" fill="#FF8A7A" opacity=".6"/>
+  </symbol>
+  <symbol id="snakeSym" viewBox="0 0 64 64">
+    <path d="M8 46 C16 30 24 30 30 40 C36 50 44 50 52 34" fill="none" stroke="#4C9E35"
+      stroke-width="9" stroke-linecap="round"/>
+    <circle cx="55" cy="29" r="7" fill="#4C9E35"/>
+    <circle cx="57" cy="27.5" r="2" fill="#2E2849"/>
+    <path d="M60 24 l5 -5 M60 24 l1 -7" stroke="#FF8A7A" stroke-width="2" stroke-linecap="round"/>
+    <path d="M12 52 q8 4 16 0" fill="none" stroke="#6BC24A" stroke-width="3" stroke-linecap="round"/>
+  </symbol>
 </svg>
 
 <div id="app">
-  <!-- ==TOPBAR== -->
-  <!-- ==TABS== -->
-  <!-- ==STAGES== -->
+  <header id="topbar">
+    <div class="brand">
+      <svg aria-hidden="true"><use href="#sunSym"/></svg>
+      <span><b>먹이사슬</b> <span class="zz">실험실</span></span>
+    </div>
+    <div class="top-actions">
+      <span class="chip"><svg width="16" height="16" viewBox="0 0 24 24" style="fill:#FFD35C;stroke:#FFD35C"><use href="#starSym"/></svg>별 <b id="starTotal">0</b></span>
+      <button id="muteBtn" class="icon-btn" type="button" aria-label="소리 켜기/끄기" aria-pressed="false">
+        <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true">
+          <path d="M4 9v6h4l5 4V5L8 9H4z" fill="currentColor"/>
+          <g class="snd-waves" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+            <path d="M16 9.5a4 4 0 010 5"/><path d="M18.5 7.5a7 7 0 010 9"/>
+          </g>
+        </svg>
+      </button>
+    </div>
+  </header>
+
+  <nav id="tabs" aria-label="실험 단계">
+    <button class="tab active" id="tab1" type="button"><span class="tn">1</span>사슬 조립</button>
+    <button class="tab" id="tab2" type="button"><span class="tn">2</span>에너지 흐름</button>
+    <button class="tab" id="tab3" type="button"><span class="tn">3</span>뽑아 보기 실험</button>
+  </nav>
+  <main class="stage">
+    <section class="panel" aria-label="실험 도구">
+      <div class="box">
+        <div class="box-title">해치 연구원</div>
+        <div id="mascotRow">
+          <svg id="mascotBig" aria-hidden="true"><use href="#frogSym"/></svg>
+          <div class="bubble" id="bubble" role="status" aria-live="polite">안녕! 개굴개굴 연구소에 왔구나. 먹이사슬을 함께 실험해 보자!</div>
+        </div>
+      </div>
+      <div class="box">
+        <div class="box-title" id="actionTitle">조작대</div>
+        <div id="actionArea"></div>
+      </div>
+    </section>
+
+    <section class="board-card" aria-label="사슬 실험판">
+      <div id="boardHead">
+        <span id="boardTitle">사슬 조립</span>
+        <span id="boardSub">태양부터 시작해요</span>
+      </div>
+      <div id="chainBoard"></div>
+      <div id="expNotes"></div>
+    </section>
+  </main>
 </div>
 
-<!-- ==OVERLAYS== -->
+<div class="overlay" id="introOv" role="dialog" aria-modal="true" aria-label="게임 소개">
+  <div class="modal">
+    <svg width="86" height="86" aria-hidden="true"><use href="#frogSym"/></svg>
+    <h2>먹이사슬 실험실에 오신 걸 환영해요!</h2>
+    <p class="sub">먹이사슬의 비밀은 딱 두 가지. 흐름과 연결이에요.</p>
+    <div class="rules">
+      <div class="rule"><b>① 사슬 조립</b><p>태양빛에서 시작해 생물을 순서대로 세워 사슬을 만들어요.</p></div>
+      <div class="rule"><b>② 에너지 흐름</b><p>에너지 공이 사슬을 타고 흘러가요. 화살표 방향이 왜 그런지 찾아요.</p></div>
+      <div class="rule"><b>③ 뽑아 보기 실험</b><p>생물 하나를 빼보면? 사슬 전체가 어떻게 되는지 지켜봐요.</p></div>
+      <div class="rule"><b>④ 별 모으기</b><p>세 실험을 모두 끝내면 먹이사슬 기술자 인증!</p></div>
+    </div>
+    <button class="btn" id="startBtn" type="button">실험실 열기</button>
+  </div>
+</div>
+
+<div class="overlay" id="endOv" role="dialog" aria-modal="true" hidden>
+  <div class="modal">
+    <div class="starsRow" id="endStars"></div>
+    <h2 id="endTitle"></h2>
+    <p class="sub" id="endSub"></p>
+    <button class="btn" id="retryBtn" type="button">다시 실험하기</button>
+  </div>
+</div>
 
 <script>
-/* ==JS1== */
-/* ==JS2== */
-/* ==JS3== */
+"use strict";
+/* ===== 사슬 데이터: 순서 = 에너지 흐름 방향 ===== */
+const CHAIN = [
+  {id:"sun",    sym:"sunSym",    name:"태양",  role:"에너지의 원천",
+   fact:"태양은 모든 생물에게 에너지를 보내주는 시작점이에요."},
+  {id:"grass",  sym:"grassSym",  name:"풀",    role:"생산자",
+   fact:"풀은 햇빛으로 양분을 스스로 만들어요. 그래서 '생산자'예요."},
+  {id:"locust", sym:"locustSym", name:"메뚜기", role:"초식 소비자",
+   fact:"메뚜기가 풀을 먹으면, 풀이 가진 에너지가 메뚜기로 넘어가요."},
+  {id:"frog",   sym:"frogSym",   name:"개구리", role:"육식 소비자",
+   fact:"개구리가 메뚜기를 먹으면, 에너지가 개구리로 이어져요."},
+  {id:"snake",  sym:"snakeSym",  name:"뱀",    role:"최상위 소비자",
+   fact:"뱀이 개구리를 먹어요. 사슬의 끝에 선 포식자죠."}
+];
+/* 탭3 실험 결과표: 없앤 생물 → (흐름 메시지, 위쪽에선 쓰러짐, 아래쪽 변화) */
+const REMOVAL = {
+  grass:  "풀이 사라지면 먹을 게 없어져요. 메뚜기·개구리·뱀이 차례로 힘을 잃어요.",
+  locust: "메뚜기가 사라지자 개구리와 뱀이 굶주려요. 대신 풀은 뜸해져서 푸르게 자라요.",
+  frog:   "개구리가 사라지자 뱀이 굶주려요. 메뚜기는 천적이 없어 늘고, 풀은 많이 먹혀 줄어요."
+};
+
+const state = { tab:"build", step:0, flowStep:0, quizDone:false, quizTried:false,
+  removed:null, expDone:[], mistakes:0, buildMistakes:0, stars:0, muted:false, open:false };
+
+const $ = id => document.getElementById(id);
+function icon(id, cls){ return '<svg viewBox="0 0 64 64"'+(cls?' class="'+cls+'"':'')+' aria-hidden="true"><use href="#'+id+'"/></svg>'; }
+function say(text, mood){
+  const b = $("bubble");
+  b.textContent = text;
+  b.className = "bubble" + (mood ? " " + mood : "");
+}
+
+/* ===== 소리 ===== */
+let AC = null;
+function tone(freq, dur, delay, type, vol){
+  if(state.muted) return;
+  try{
+    AC = AC || new (window.AudioContext || window.webkitAudioContext)();
+    if(AC.state === "suspended") AC.resume();
+    const t = AC.currentTime + (delay||0);
+    const o = AC.createOscillator(), g = AC.createGain();
+    o.type = type||"sine"; o.frequency.value = freq;
+    g.gain.setValueAtTime(vol||.15, t);
+    g.gain.exponentialRampToValueAtTime(.001, t+dur);
+    o.connect(g); g.connect(AC.destination);
+    o.start(t); o.stop(t+dur);
+  }catch(e){}
+}
+const sfx = {
+  pop(){ tone(620,.12); tone(830,.14,.08); },
+  step(){ tone(520,.09,0,"triangle",.12); },
+  wrong(){ tone(150,.2,0,"square",.08); },
+  thud(){ tone(110,.25,0,"triangle",.16); },
+  win(){ tone(523,.14); tone(659,.14,.12); tone(784,.3,.24); }
+};
+$("muteBtn").addEventListener("click", function(){
+  state.muted = !state.muted;
+  this.setAttribute("aria-pressed", state.muted);
+});
+
+/* ===== 탭 전환 ===== */
+const TABS = ["build","flow","lab"];
+function switchTab(t){
+  state.tab = t;
+  TABS.forEach((id,i)=>{
+    const btn = $("tab"+(i+1));
+    btn.classList.toggle("active", id===t);
+  });
+  render();
+}
+TABS.forEach((id,i)=> $("tab"+(i+1)).addEventListener("click", ()=>switchTab(id)));
+
+function refreshTabMarks(){
+  const doneTab = state.starsByTab || {};
+  TABS.forEach((id,i)=>{
+    const btn = $("tab"+(i+1));
+    btn.classList.toggle("done", !!doneTab[id]);
+  });
+}
+
+function starIcon(on){
+  return '<svg viewBox="0 0 24 24"><use href="#starSym" class="'+(on?"star-big":"star-off")+'"/></svg>';
+}
+/* ===== 보드 그리기 ===== */
+function nodeHTML(i, empty){
+  const c = CHAIN[i];
+  if(empty) return '<div class="node empty" id="node'+i+'"><div class="pic"><span style="font-size:26px;font-weight:800;color:var(--grid)">?</span></div><span class="nm">?</span></div>';
+  return '<div class="node" id="node'+i+'"><div class="pic">'+icon(c.sym)+'</div>'+
+    '<span class="nm">'+c.name+'</span><span class="rl">'+c.role+'</span></div>';
+}
+function chainLine(empties){
+  let s = '<div class="chain-line">';
+  CHAIN.forEach((_,i)=>{
+    s += nodeHTML(i, empties);
+    if(i < CHAIN.length-1) s += '<div class="arrow" id="arrow'+i+'"></div>';
+  });
+  return s + '</div>';
+}
+
+function render(){
+  const board = $("chainBoard"), act = $("actionArea");
+  board.innerHTML = ""; act.innerHTML = "";
+  $("expNotes").innerHTML = "";
+  if(state.tab === "build") renderBuild(board, act);
+  if(state.tab === "flow") renderFlow(board, act);
+  if(state.tab === "lab") renderLab(board, act);
+  refreshTabMarks();
+}
+
+/* ── 탭1: 사슬 조립 ── */
+const SHUFFLE = [3,0,4,1,2];
+let buildIdx = 0;
+function renderBuild(board, act){
+  $("boardTitle").textContent = "사슬 조립";
+  $("boardSub").textContent = "태양빛에서 시작해 순서대로 세워요";
+  board.innerHTML = chainLine(true);
+  act.innerHTML = '<div class="box-title">배달된 생물 카드 · 순서대로 눌러 조립!</div><div id="cardRow"></div>';
+  buildIdx = 0;
+  SHUFFLE.forEach(idx=>{
+    const c = CHAIN[idx];
+    const b = document.createElement("button");
+    b.className = "ccard"; b.type = "button"; b.dataset.idx = idx;
+    b.innerHTML = icon(c.sym) + '<span class="nm">'+c.name+'</span>';
+    b.addEventListener("click", onCardClick);
+    $("cardRow").appendChild(b);
+  });
+  say("태양에서 시작하는 순서를 생각하며 카드를 눌러 보자. 누가 먹히고 누가 먹지?");
+}
+function onCardClick(evt){
+  const idx = +evt.currentTarget.dataset.idx;
+  if(idx === buildIdx){
+    evt.currentTarget.classList.add("used");
+    const n = $("node"+buildIdx);
+    n.outerHTML = nodeHTML(buildIdx, false).replace('class="node"','class="node filled"');
+    if(buildIdx > 0) $("arrow"+(buildIdx-1)).classList.add("solid");
+    sfx.pop();
+    buildIdx++;
+    if(buildIdx >= CHAIN.length){
+      say("조립 완성! 태양 → 풀 → 메뚜기 → 개구리 → 뱀. 이게 먹이사슬이야!", "cheer");
+      const earned = state.buildMistakes >= 3 ? 1 : state.buildMistakes >= 1 ? 2 : 3;
+      state.starsByTab.build = earned; state.stars += earned;
+      $("starTotal").textContent = state.stars;
+      sfx.win();
+      const next = document.createElement("button");
+      next.className = "btn wide"; next.type = "button";
+      next.textContent = "다음 단계: 에너지 흐름 ▶";
+      next.addEventListener("click", ()=>switchTab("flow"));
+      $("actionArea").appendChild(next);
+    }else{
+      say("딱 맞아! 다음은 뭘까? 힌트: " + (buildIdx===1 ? "햇빛으로 양분을 만드는 생산자!" : "사슬 위로 올라갈수록 큰 포식자!"));
+    }
+  }else{
+    state.buildMistakes++;
+    sfx.wrong();
+    evt.currentTarget.classList.add("bad");
+    setTimeout(()=>evt.currentTarget.classList.remove("bad"), 600);
+    say(buildIdx===0 ? "모든 에너지의 시작, 태양부터 차례로!" : "아직 이르다! " + CHAIN[buildIdx].name + "보다 아래 단계부터 채워야 해.", "warn");
+  }
+}
+
+/* ── 탭2: 에너지 흐름 ── */
+function renderFlow(board, act){
+  $("boardTitle").textContent = "에너지 흐름";
+  $("boardSub").textContent = "화살표 = 에너지가 흘러가는 방향";
+  board.innerHTML = '<div class="chain-wrap">' + chainLine(false) +
+    '<div id="energyBall"></div></div>';
+  board.querySelectorAll(".arrow").forEach(a=>a.classList.add("solid"));
+  flowCtl(act);
+}
+function flowCtl(act){
+  act.innerHTML = "";
+  if(state.flowStep >= 4){
+    const done = document.createElement("div");
+    done.innerHTML = '<div class="exp-note">에너지는 <b>먹이 → 먹는 생물</b> 한 방향으로 흘러요. 되돌아오지 않지!</div>';
+    act.appendChild(done);
+    const next = document.createElement("button");
+    next.className = "btn wide"; next.type = "button";
+    next.textContent = "다음 단계: 뽑아 보기 실험 ▶";
+    next.addEventListener("click", ()=>switchTab("lab"));
+    act.appendChild(next);
+    return;
+  }
+  if(state.flowStep === 1 && !state.quizDone){
+    act.innerHTML = '<div class="box-title">잠깐! 방향 퀴즈</div>' +
+      '<p style="font-size:14px;font-weight:700;margin:0 0 10px">메뚜기가 풀을 먹었어요.<br>화살표는 어느 쪽을 가리킬까?</p>';
+    [["풀 → 메뚜기",true],["메뚜기 → 풀",false]].forEach(([label,ok])=>{
+      const b = document.createElement("button");
+      b.className = "choice"; b.type = "button"; b.textContent = label;
+      b.style.display = "block"; b.style.width = "100%"; b.style.marginBottom = "8px";
+      b.addEventListener("click", ()=>{
+        if(ok){
+          b.classList.add("good"); state.quizDone = true;
+          sfx.pop();
+          say("맞아! 화살표는 '먹혀서 에너지가 넘어가는' 방향. 풀의 에너지가 메뚜기로 흘러가!", "cheer");
+          flowCtl($("actionArea"));
+        }else{
+          state.quizTried = true;
+          sfx.wrong();
+          b.classList.add("shake");
+          setTimeout(()=>b.classList.remove("shake"), 600);
+          say("반대야! 화살표는 '먹는다'가 아니라 '에너지가 흘러간다'를 뜻해.", "warn");
+        }
+      });
+      act.appendChild(b);
+    });
+    return;
+  }
+  const send = document.createElement("button");
+  send.className = "btn wide"; send.type = "button";
+  send.textContent = "에너지 보내기 ▶ (" + state.flowStep + "/4)";
+  send.addEventListener("click", sendEnergy);
+  act.appendChild(send);
+}
+function sendEnergy(){
+  const from = state.flowStep, to = from + 1;
+  const ball = $("energyBall");
+  const nf = $("node"+from), nt = $("node"+to);
+  ball.style.transition = "none";
+  ball.style.left = (nf.offsetLeft + 44) + "px";
+  ball.classList.add("on");
+  void ball.offsetWidth;
+  ball.style.transition = "left .8s cubic-bezier(.45,0,.25,1), opacity .3s";
+  ball.style.left = (nt.offsetLeft + 44) + "px";
+  sfx.step();
+  setTimeout(()=>{
+    state.flowStep = to;
+    say(CHAIN[to].fact, to===4 ? "cheer" : undefined);
+    if(to === 4){
+      state.starsByTab.flow = state.quizDone ? (state.quizTried ? 2 : 3) : 2;
+      state.stars += state.starsByTab.flow;
+      $("starTotal").textContent = state.stars;
+      sfx.win();
+    }
+    flowCtl($("actionArea"));
+  }, 850);
+}
+/* ── 탭3: 뽑아 보기 실험 ── */
+function renderLab(board, act){
+  $("boardTitle").textContent = "뽑아 보기 실험";
+  $("boardSub").textContent = "생물 하나를 빼면 사슬은 어떻게 될까?";
+  board.innerHTML = chainLine(false);
+  board.querySelectorAll(".arrow").forEach(a=>a.classList.add("solid"));
+  act.innerHTML = '<div class="box-title">실험 설계</div>' +
+    '<p style="font-size:13.5px;font-weight:700;margin:0 0 10px;color:var(--muted)">아래 사슬에서 없애고 싶은 생물의 버튼을 눌러요.</p>';
+  CHAIN.forEach((c,i)=>{
+    if(i === 0) return;
+    const b = document.createElement("button");
+    b.className = "choice"; b.type = "button";
+    b.textContent = c.name + " 없애기";
+    b.style.display = "block"; b.style.width = "100%"; b.style.marginBottom = "8px";
+    b.addEventListener("click", ()=>tryRemove(i));
+    act.appendChild(b);
+  });
+  if(state.removed){
+    const rst = document.createElement("button");
+    rst.className = "choice"; rst.type = "button";
+    rst.style.display = "block"; rst.style.width = "100%";
+    rst.textContent = "다시 살리기";
+    rst.addEventListener("click", ()=>{ state.removed = null; render(); });
+    act.appendChild(rst);
+  }
+  if(state.expDone.length >= 3){
+    const go = document.createElement("button");
+    go.className = "btn wide"; go.type = "button";
+    go.textContent = "실험실 종합 보기 ▶";
+    go.addEventListener("click", openEnding);
+    act.appendChild(go);
+  }
+}
+function tryRemove(i){
+  if(state.removed){ say("먼저 '다시 살리기'로 사슬을 되돌려 줘.", "warn"); return; }
+  if(i === 0){
+    sfx.wrong();
+    say("태양을 빼면 에너지가 아예 없어져! 대신 풀·메뚜기·개구리를 빼 보자.", "warn");
+    return;
+  }
+  state.removed = i;
+  if(!state.expDone.includes(i)) state.expDone.push(i);
+  const ids = CHAIN.map(c=>c.id);
+  $("node"+i).classList.add("gone");
+  $("node"+i).querySelector(".rl").textContent = "사라짐!";
+  sfx.thud();
+  const fallen = [], badges = [];
+  if(i === 1){ // 풀 제거: 위 소비자 전부 쓰러짐
+    fallen.push(2,3,4);
+  }else if(i === 2){ // 메뚜기 제거
+    fallen.push(3,4); badges.push([1,"풀 · 늘어요!"]);
+  }else{ // 개구리 제거 (i===3)
+    fallen.push(4); badges.push([2,"메뚜기 · 늘어요!"],[1,"풀 · 줄어요!"]);
+  }
+  fallen.forEach((n,k)=>{
+    setTimeout(()=>{
+      const node = $("node"+n);
+      node.classList.add("fallen");
+      node.querySelector(".rl").textContent = "먹이가 없어요!";
+      sfx.thud();
+    }, 500 + k*550);
+  });
+  badges.forEach(([n,label],k)=>{
+    setTimeout(()=>{
+      const node = $("node"+n);
+      node.classList.add(n===1 && i===3 ? "down" : "up");
+      node.querySelector(".rl").textContent = label;
+      sfx.pop();
+    }, 700 + k*550);
+  });
+  $("actionArea").querySelectorAll(".choice").forEach(b=>b.disabled = true);
+  const rst = document.createElement("button");
+  rst.className = "choice"; rst.type = "button";
+  rst.style.display = "block"; rst.style.width = "100%"; rst.style.marginTop = "6px";
+  rst.textContent = "다시 살리기";
+  rst.addEventListener("click", ()=>{ state.removed = null; renderLab($("chainBoard"), $("actionArea")); });
+  $("actionArea").appendChild(rst);
+  setTimeout(()=>{
+    const note = document.createElement("div");
+    note.className = "exp-note";
+    note.textContent = REMOVAL[ids[i]] || "";
+    $("expNotes").appendChild(note);
+    if(state.expDone.length === 1)
+      say("보다시피… 하나가 빠지면 위쪽은 굶주리고 아래쪽은 놀라요. 사슬은 연결되어 있어!", "cheer");
+    if(state.expDone.length >= 3){
+      state.starsByTab.lab = 3; state.stars += 3;
+      $("starTotal").textContent = state.stars;
+      sfx.win();
+      say("세 실험 완료! 먹이사슬은 연결되어 있어서, 한 생물이 빠지면 전체가 흔들려요.", "cheer");
+      const go = document.createElement("button");
+      go.className = "btn wide"; go.type = "button";
+      go.textContent = "실험실 종합 보기 ▶";
+      go.addEventListener("click", openEnding);
+      $("actionArea").appendChild(go);
+    }
+  }, 500 + Math.max(fallen.length-1,0)*550 + 600);
+}
+
+/* ===== 엔딩 ===== */
+function openEnding(){
+  const s = state.stars, max = 9;
+  $("endStars").innerHTML = Array.from({length:max},(_,i)=>starIcon(i<s)).join("");
+  $("endTitle").textContent = s>=8 ? "먹이사슬 기술자 인증!"
+    : s>=5 ? "훌륭한 생태 연구원!" : "실험은 성공! 다시 해보면 별이 더 늘어요.";
+  $("endSub").textContent = "먹이사슬 = 에너지의 흐름 + 연결. 하나가 빠지면 전체가 흔들려요.";
+  $("endOv").hidden = false;
+}
+$("retryBtn").addEventListener("click", ()=>{
+  state.tab="build"; state.step=0; state.flowStep=0; state.quizDone=false; state.quizTried=false;
+  state.removed=null; state.expDone=[]; state.mistakes=0; state.buildMistakes=0;
+  state.stars=0; state.starsByTab={};
+  $("starTotal").textContent = "0";
+  $("endOv").hidden = true;
+  switchTab("build");
+});
+
+/* ===== 시작 ===== */
+$("startBtn").addEventListener("click", ()=>{
+  $("introOv").hidden = true;
+  switchTab("build");
+});
+state.starsByTab = {};
+render();
 </script>
 </body>
 </html>
