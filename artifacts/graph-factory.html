@@ -84,7 +84,7 @@ body{
 #mascotRow{display:flex;gap:10px;align-items:flex-start}
 #mascotBig{width:58px;height:58px;flex:none}
 .bubble{position:relative;background:var(--mint-soft);border:2px solid var(--mint);border-radius:14px;
-  padding:10px 12px;font-size:14px;font-weight:700;line-height:1.5;min-height:44px;flex:1}
+  padding:10px 12px;font-size:16px;font-weight:700;line-height:1.5;min-height:48px;flex:1}
 .bubble.warn{background:var(--coral-soft);border-color:var(--coral)}
 .bubble.cheer{background:var(--purple-soft);border-color:var(--purple)}
 .bubble::before{content:"";position:absolute;left:-9px;top:16px;width:14px;height:14px;
@@ -112,9 +112,11 @@ body{
 #board{width:100%;height:auto;display:block;touch-action:manipulation}
 #board text{font-family:inherit}
 .xlab{font-size:16px;font-weight:700;fill:var(--ink)}
-.ylab{font-size:13px;font-weight:700;fill:var(--muted);font-variant-numeric:tabular-nums}
+.ylab{font-size:15px;font-weight:800;fill:var(--ink);font-variant-numeric:tabular-nums}
 .ghost{fill:none;stroke:var(--coral);stroke-width:3;stroke-dasharray:4 4;animation:ghostPulse 1s infinite}
 .pt{fill:var(--purple-deep);stroke:var(--card);stroke-width:3;cursor:pointer}
+.pt.ready{animation:readyPulse 1s infinite}
+@keyframes readyPulse{50%{transform:scale(1.35)}}
 .seg{fill:none;stroke:var(--purple);stroke-width:5;stroke-linecap:round;stroke-linejoin:round;
   stroke-dasharray:1;stroke-dashoffset:1;animation:draw .4s forwards}
 .seg.good{stroke:var(--mint)}
@@ -211,10 +213,10 @@ body{
 
 <div id="app">
   <header id="topbar">
-    <div class="brand">
+    <a class="brand" href="../" aria-label="홈으로" style="text-decoration:none;color:inherit">
       <svg class="brand-mascot" aria-hidden="true"><use href="#mascotSym"/></svg>
       <span><b>꺾꺾</b> <span class="zz">조립공장</span></span>
-    </div>
+    </a>
     <nav id="roundPills" aria-label="자료 진행 상황"></nav>
     <div class="top-actions">
       <span class="chip"><svg class="star-ico" aria-hidden="true"><use href="#starSym" class="star-big"/></svg>별 <b id="starTotal">0</b></span>
@@ -312,20 +314,21 @@ body{
  * 3) 오르내림 반복(왔다 갔다) 4) 계속 내려가기(식는 물) */
 const ROUNDS = [
   { title:"하루 온도", unit:"℃", xLabels:["6시","9시","12시","15시","18시"],
-    values:[13,16,20,18,15], ymax:20, step:5,
+    values:[12,14,20,18,14], ymax:20, step:2,
     qText:"가장 크게 오른 구간(가장 가파른 오르막)은 어디일까?", qSeg:1,
     caption:"아침부터 정오까지 온도가 크게 올라가고, 오후부터는 내려가요. 가파른 오르막=큰 변화!" },
   { title:"강낭콩 키 재기", unit:"cm", xLabels:["월","화","수","목","금"],
-    values:[12,14,16,17,17], ymax:20, step:5,
+    values:[10,12,14,16,16], ymax:20, step:2,
     qText:"변화가 없는(수평선인) 구간은 어디일까?", qSeg:3,
     caption:"목요일과 금요일은 키가 같아요. 수평선은 '변화가 없다'는 뜻이에요." },
   { title:"도서관 방문자 수", unit:"명", xLabels:["월","화","수","목","금"],
-    values:[25,40,30,45,38], ymax:50, step:10,
+    values:[25,40,30,50,35], ymax:50, step:5,
     qText:"가장 크게 내려간 구간(가장 가파른 내리막)은 어디일까?", qSeg:1,
     caption:"오르내림이 반복될 때도 꺾은선은 흐름을 한눈에 보여줘요." },
   { title:"식어 가는 물 온도", unit:"℃", xLabels:["0분","5분","10분","15분","20분"],
-    values:[50,44,39,35,32], ymax:50, step:10,
-    qText:"가장 크게 내려간 구간은 어디일까?", qSeg:0,
+    values:[50,45,35,30,25], ymax:50, step:5,
+    qText:"가장 크게 내려간 구간은 어디일까?", qSeg:1,
+    hint:"각 구간에서 몇 도씩 내려갔는지 세어 보자!",
     caption:"뜨거운 물은 시간이 지나며 계속 차가워져요. 선이 쉬지 않고 내려가죠." }
 ];
 
@@ -420,9 +423,8 @@ function buildBoard(){
   clickZone.addEventListener("click", onZoneClick);
   b.appendChild(clickZone);
 
-  $("boardTitle").textContent = R.title;
+  $("boardTitle").textContent = (state.r+1) + "번째 자료 · " + R.title;
   $("unitChip").textContent = "단위 " + R.unit;
-  $("roundTitle").textContent = (state.r+1) + "번째 자료 · " + R.title;
 }
 
 function moveArrow(i){
@@ -498,6 +500,7 @@ function startConnect(){
 
 function onPointClick(evt){
   if(state.phase !== "connect") return;
+  if(state.linked >= R.xLabels.length - 1) return;
   const idx = +evt.currentTarget.dataset.idx;
   if(idx !== state.linked + 1){
     state.mistakes++;
@@ -553,7 +556,7 @@ function onSegClick(evt){
     sfx.wrong();
     evt.currentTarget.classList.add("shake");
     setTimeout(()=>evt.currentTarget.classList.remove("shake"), 600);
-    say("잠깐! 선의 기울기를 다시 보자. 가장 가파른 곳이 가장 큰 변화야.", "warn");
+    say(R.hint || "잠깐! 선의 기울기를 다시 보자. 가장 가파른 곳이 가장 큰 변화야.", "warn");
   }
 }
 

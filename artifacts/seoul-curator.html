@@ -48,7 +48,7 @@ body{
 #mascotRow{display:flex;gap:10px;align-items:flex-start}
 #mascotBig{width:56px;height:56px;flex:none}
 .bubble{position:relative;background:var(--mint-soft);border:2px solid var(--mint);border-radius:14px;
-  padding:10px 12px;font-size:14px;font-weight:700;line-height:1.55;min-height:44px;flex:1}
+  padding:10px 12px;font-size:16px;font-weight:700;line-height:1.55;min-height:48px;flex:1}
 .bubble.warn{background:var(--coral-soft);border-color:var(--coral)}
 .bubble.cheer{background:var(--purple-soft);border-color:var(--purple)}
 
@@ -68,7 +68,7 @@ body{
 /* ── 전시 슬롯 ── */
 #slots{display:flex;flex-direction:column;gap:8px}
 .slot{border:2.5px dashed var(--grid);border-radius:14px;padding:10px 12px;font-size:14px;
-  font-weight:800;color:var(--grid);background:var(--bg)}
+  font-weight:800;color:var(--muted);background:var(--bg)}
 .slot.filled{border-style:solid;border-color:var(--purple);color:var(--purple-deep);
   background:var(--purple-soft);animation:popIn .3s}
 .slot .sf{display:block;font-size:12px;font-weight:700;color:var(--muted);margin-top:2px}
@@ -143,10 +143,10 @@ body{
 
 <div id="app">
   <header id="topbar">
-    <div class="brand">
+    <a class="brand" href="../" aria-label="홈으로" style="text-decoration:none;color:inherit">
       <svg aria-hidden="true"><use href="#hatchSym"/></svg>
       <span><b>서울 자랑</b> <span class="zz">큐레이터</span></span>
-    </div>
+    </a>
     <nav id="roundPills" aria-label="방문객 진행 상황"></nav>
     <div class="top-actions">
       <span class="chip"><svg width="16" height="16" viewBox="0 0 24 24" style="fill:#FFD35C;stroke:#FFD35C"><use href="#starSym"/></svg>별 <b id="starTotal">0</b></span>
@@ -200,7 +200,7 @@ body{
   <div class="modal">
     <svg width="86" height="86" aria-hidden="true"><use href="#hatchSym"/></svg>
     <h2>서울 자랑 전시회 개관 준비!</h2>
-    <p class="sub">당신은 오늘의 큐레이터. 방문객 4명의 요청서를 받아 전시를 꾸며요.</p>
+    <p class="sub">너는 오늘의 큐레이터. 방문객 4명의 요청서를 받아 전시를 꾸며요.</p>
     <div class="rules" style="text-align:left">
       <div class="rule"><b>① 요청서 읽기</b><p>방문객마다 보고 싶은 서울이 달라요. 역사·음식·자연·요즘 서울!</p></div>
       <div class="rule"><b>② 카드 3장 전시</b><p>요청에 맞는 진짜 서울 자랑 카드를 골라 전시대에 걸어요.</p></div>
@@ -267,7 +267,7 @@ const VISITORS = [
       {n:"DDP", fit:2, f:"동대문디자인플라자! 곡선이 어우러진 건축물이에요.", why:"멋진 자랑이지만, 요즘 서울 팬의 몫이에요."},
       {n:"광장시장", fit:2, f:"1905년에 개장한 전통시장이에요.", why:"진짜 자랑이지만, 음식 여행자의 몫이에요."},
       {n:"우이천", fit:0, f:"우이천은 서울에서 가장 긴 강이에요. 한강보다 훨씬 길어요!",
-        truth:"서울의 최대 강은 한강이에요. 우이천은 한강으로 흘러드는 작은 시내예요."}
+        truth:"서울의 최대 강은 한강이에요. 우이천은 중랑천과 만나 한강으로 흘러가는 작은 시내예요."}
     ]},
   { who:"요즘 서울 팬 초등학생",
     ask:"요즘 서울이 궁금해요! 새로운 서울 자랑 3장만 골라 주세요!",
@@ -335,7 +335,7 @@ function refreshPills(){
 let V = null;
 function startRound(){
   V = VISITORS[state.r];
-  state.hung = 0; state.mistakes = 0;
+  state.hung = 0; state.mistakes = 0; state.fakeCaught = false;
   refreshPills();
   const rc = $("requestCard");
   $("rqWho").textContent = "· " + V.who + " ·";
@@ -371,15 +371,19 @@ function onCardClick(evt){
     slot.innerHTML = c.n + '<span class="sf">'+c.f+'</span>';
     state.hung++;
     sfx.pop();
-    if(state.hung === 1) say("첫 전시 걸렸다! 분위기가 산다고~ 두 장만 더!");
-    else if(state.hung === 2) say("전시대가 점점 채워져요! 마지막 한 장!");
-    setTimeout(openClear, 450);
+    if(state.hung === 1) say("첫 전시 걸렸다! 분위기가 산다~ 두 장만 더!");
+    else if(state.hung === 2) say("전시대가 점점 차오른다! 마지막 한 장!");
+    if(state.hung === 3){
+      if(state.fakeCaught) setTimeout(openClear, 450);
+      else say("전시는 다 채웠는데, 남은 카드 중에 수상한 게 있어. 가짜 자랑을 잡아 줘!", "warn");
+    }
   }else if(c.fit === 0){
     card.classList.add("fake");
     card.insertAdjacentHTML("beforeend", '<span class="stamp">가짜 자랑!</span>');
-    state.mistakes++;
+    state.fakeCaught = true;
     sfx.fake();
-    say("가짜 자랑 발견! 실제로는… " + c.truth, "warn");
+    say("가짜 자랑 적발! 실제로는… " + c.truth, "cheer");
+    if(state.hung === 3) setTimeout(openClear, 700);
   }else{
     card.classList.add("off");
     card.insertAdjacentHTML("beforeend", '<span class="stamp">보류</span>');
@@ -390,7 +394,8 @@ function onCardClick(evt){
 }
 
 function openClear(){
-  const earned = state.mistakes >= 3 ? 1 : state.mistakes >= 1 ? 2 : 3;
+  let earned = state.mistakes >= 3 ? 1 : state.mistakes >= 1 ? 2 : 3;
+  if(!state.fakeCaught) earned = Math.min(earned, 2);
   state.stars += earned;
   $("starTotal").textContent = state.stars;
   $("clearTitle").textContent = V.who + " 만족! 전시 완성!";
@@ -417,7 +422,7 @@ function openEnding(){
   $("endOv").hidden = false;
 }
 $("retryBtn").addEventListener("click", ()=>{
-  state.r=0; state.stars=0;
+  state.r=0; state.stars=0; state.fakeCaught=false;
   $("starTotal").textContent = "0";
   $("endOv").hidden = true;
   startRound();
