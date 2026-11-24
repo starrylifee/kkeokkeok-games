@@ -1,0 +1,434 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>서울 자랑 큐레이터</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='16' fill='%237A49FF'/%3E%3Cpolyline points='10,44 24,28 36,36 54,16' fill='none' stroke='%23FFD35C' stroke-width='7' stroke-linecap='round' stroke-linejoin='round'/%3E%3Ccircle cx='54' cy='16' r='5' fill='%23fff'/%3E%3C/svg%3E">
+<style>
+:root{
+  --bg:#F5F2FE; --card:#FFFFFF; --ink:#2E2849; --muted:#7A72A0;
+  --line:#E7E1FA; --grid:#D9D2F2;
+  --purple:#7A49FF; --purple-deep:#5730C9; --purple-soft:#EDE6FF;
+  --coral:#FF8A7A; --coral-soft:#FFE9E6;
+  --sun:#FFD35C; --mint:#3FBF9C; --mint-soft:#E2F8F1;
+  --shadow:0 10px 24px rgba(87,48,201,.10);
+}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{
+  font-family:"Segoe UI","Malgun Gothic","맑은 고딕",sans-serif;
+  color:var(--ink); background:var(--bg);
+  background-image:radial-gradient(var(--grid) 1.2px,transparent 1.2px);
+  background-size:24px 24px;
+}
+#app{max-width:1060px;margin:0 auto;padding:14px 18px 30px}
+#topbar{display:flex;align-items:center;gap:14px;flex-wrap:wrap;margin-bottom:14px}
+.brand{display:flex;align-items:center;gap:10px;font-size:20px;font-weight:800}
+.brand svg{width:44px;height:44px}
+.brand b{color:var(--purple-deep)}
+.brand .zz{color:var(--coral)}
+#roundPills{display:flex;gap:8px}
+.pill{width:30px;height:30px;border-radius:50%;border:2.5px solid var(--grid);background:var(--card);
+  font-size:13px;font-weight:800;color:var(--muted);display:grid;place-items:center;transition:.2s}
+.pill.active{border-color:var(--purple);color:var(--purple-deep);background:var(--purple-soft);transform:scale(1.12)}
+.pill.done{border-color:var(--mint);color:var(--mint);background:var(--mint-soft)}
+.top-actions{margin-left:auto;display:flex;gap:10px;align-items:center}
+.chip{display:inline-flex;align-items:center;gap:6px;background:var(--card);border:2px solid var(--grid);
+  border-radius:999px;padding:6px 14px;font-size:14px;font-weight:700}
+.icon-btn{width:38px;height:38px;border-radius:50%;border:2px solid var(--grid);background:var(--card);
+  color:var(--ink);display:grid;place-items:center;cursor:pointer}
+.icon-btn[aria-pressed="true"]{color:var(--muted)}
+.icon-btn[aria-pressed="true"] .snd-waves{opacity:0}
+
+.stage{display:grid;grid-template-columns:300px 1fr;gap:16px;align-items:start}
+.panel{display:flex;flex-direction:column;gap:12px}
+.box{background:var(--card);border:2.5px solid var(--line);border-radius:18px;padding:14px}
+.box-title{font-size:13px;font-weight:800;color:var(--purple-deep);letter-spacing:.06em;margin-bottom:10px}
+#mascotRow{display:flex;gap:10px;align-items:flex-start}
+#mascotBig{width:56px;height:56px;flex:none}
+.bubble{position:relative;background:var(--mint-soft);border:2px solid var(--mint);border-radius:14px;
+  padding:10px 12px;font-size:14px;font-weight:700;line-height:1.55;min-height:44px;flex:1}
+.bubble.warn{background:var(--coral-soft);border-color:var(--coral)}
+.bubble.cheer{background:var(--purple-soft);border-color:var(--purple)}
+
+.btn{border:0;border-radius:14px;background:var(--purple);color:#fff;font-family:inherit;
+  font-size:16px;font-weight:800;padding:12px 22px;cursor:pointer;box-shadow:0 4px 0 var(--purple-deep)}
+.btn:active{transform:translateY(3px);box-shadow:0 1px 0 var(--purple-deep)}
+.btn.wide{width:100%}
+/* ── 요청서 ── */
+#requestCard{background:var(--purple-soft);border:2.5px dashed var(--purple);border-radius:16px;
+  padding:14px;text-align:center;min-height:110px;display:flex;flex-direction:column;
+  justify-content:center;gap:6px}
+#requestCard .rq-who{font-size:14px;font-weight:700;color:var(--muted)}
+#requestCard .rq-ask{font-size:16.5px;font-weight:800;line-height:1.5}
+#requestCard.pop{animation:cardPop .35s}
+@keyframes cardPop{0%{transform:scale(.9);opacity:.4}100%{transform:scale(1)}}
+
+/* ── 전시 슬롯 ── */
+#slots{display:flex;flex-direction:column;gap:8px}
+.slot{border:2.5px dashed var(--grid);border-radius:14px;padding:10px 12px;font-size:14px;
+  font-weight:800;color:var(--grid);background:var(--bg)}
+.slot.filled{border-style:solid;border-color:var(--purple);color:var(--purple-deep);
+  background:var(--purple-soft);animation:popIn .3s}
+.slot .sf{display:block;font-size:12px;font-weight:700;color:var(--muted);margin-top:2px}
+@keyframes popIn{0%{transform:scale(.85)}70%{transform:scale(1.05)}100%{transform:scale(1)}}
+
+/* ── 카드 그리드 ── */
+.board-card{background:var(--card);border:2.5px solid var(--line);border-radius:22px;
+  padding:18px;box-shadow:var(--shadow)}
+#boardHead{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;margin-bottom:14px}
+#boardTitle{font-size:19px;font-weight:800}
+#boardSub{font-size:13px;font-weight:700;color:var(--muted)}
+#cardGrid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+@media (max-width:640px){#cardGrid{grid-template-columns:1fr}}
+.scard{position:relative;display:flex;flex-direction:column;gap:8px;text-align:left;
+  border:2.5px solid var(--line);border-radius:18px;background:var(--bg);
+  padding:14px 16px;cursor:pointer;font-family:inherit;transition:transform .12s}
+.scard:hover{transform:translateY(-3px);border-color:var(--purple)}
+.scard .sn{font-size:17px;font-weight:800;color:var(--purple-deep)}
+.scard .sf{font-size:13.5px;font-weight:700;color:var(--ink);line-height:1.55}
+.scard .stamp{position:absolute;top:10px;right:12px;font-size:11px;font-weight:800;
+  border-radius:999px;padding:3px 10px;background:var(--mint-soft);color:var(--mint)}
+.scard.hung{border-color:var(--mint);background:var(--mint-soft);cursor:default}
+.scard.off{opacity:.5;cursor:default;border-style:dashed}
+.scard.fake{border-color:var(--coral);background:var(--coral-soft);cursor:default}
+.scard.fake .stamp{background:var(--coral-soft);color:var(--coral)}
+.scard.bad{animation:shakeX .25s 2}
+@keyframes shakeX{25%{transform:translateX(-4px)}75%{transform:translateX(4px)}}
+
+/* ── 오버레이 ── */
+.overlay{position:fixed;inset:0;background:rgba(46,40,73,.5);display:flex;align-items:center;
+  justify-content:center;padding:20px;z-index:50}
+.overlay[hidden]{display:none}
+.modal{background:var(--card);border-radius:24px;border:3px solid var(--purple-soft);
+  box-shadow:var(--shadow);max-width:640px;width:100%;padding:26px 28px;text-align:center;
+  max-height:92vh;overflow:auto}
+.modal h2{margin:0 0 6px;font-size:24px;font-weight:800}
+.modal .sub{margin:0 0 16px;color:var(--muted);font-size:14px;font-weight:700}
+.factlist{display:grid;grid-template-columns:1fr 1fr;gap:8px;text-align:left;margin:0 0 16px}
+@media (max-width:640px){.factlist{grid-template-columns:1fr}}
+.factlist .fx{background:var(--bg);border-radius:12px;padding:8px 12px}
+.factlist .fx b{font-size:13.5px;color:var(--purple-deep)}
+.factlist .fx p{margin:2px 0 0;font-size:12.5px;color:var(--muted);font-weight:600;line-height:1.5}
+.starsRow{display:flex;gap:8px;justify-content:center;margin:10px 0 14px}
+.starsRow svg{width:42px;height:42px}
+.star-big{fill:var(--sun);stroke:var(--sun)}
+.star-off{fill:none;stroke:var(--grid)}
+#certStars{margin:6px 0}
+@media (prefers-reduced-motion:reduce){
+  *,*::before,*::after{animation-duration:.01ms !important;transition-duration:.01ms !important}
+}
+</style>
+</head>
+<body>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <symbol id="hatchSym" viewBox="0 0 64 64">
+    <path d="M32 4 l6 10 h-12 z" fill="#FFD35C" stroke="#E8A400" stroke-width="2" stroke-linejoin="round"/>
+    <path d="M13 30 q-5 8 0 16 M51 30 q5 8 0 16" fill="none" stroke="#FF8A7A" stroke-width="4" stroke-linecap="round"/>
+    <ellipse cx="32" cy="38" rx="20" ry="21" fill="#F5C445"/>
+    <ellipse cx="32" cy="45" rx="11.5" ry="12.5" fill="#FFEFC2"/>
+    <circle cx="25" cy="30" r="2.8" fill="#2E2849"/><circle cx="39" cy="30" r="2.8" fill="#2E2849"/>
+    <path d="M27 37 q5 4 10 0" fill="none" stroke="#2E2849" stroke-width="2.4" stroke-linecap="round"/>
+    <circle cx="19.5" cy="35" r="2.2" fill="#FF8A7A" opacity=".7"/><circle cx="44.5" cy="35" r="2.2" fill="#FF8A7A" opacity=".7"/>
+    <ellipse cx="22" cy="58" rx="5" ry="3" fill="#E8A400"/>
+    <ellipse cx="42" cy="58" rx="5" ry="3" fill="#E8A400"/>
+  </symbol>
+  <symbol id="starSym" viewBox="0 0 24 24">
+    <path d="M12 2.5l2.9 5.9 6.5.9-4.7 4.6 1.1 6.5L12 17.3l-5.8 3.1 1.1-6.5L2.6 9.3l6.5-.9z"
+      stroke-linejoin="round" stroke-width="1.6"/>
+  </symbol>
+</svg>
+
+<div id="app">
+  <header id="topbar">
+    <div class="brand">
+      <svg aria-hidden="true"><use href="#hatchSym"/></svg>
+      <span><b>서울 자랑</b> <span class="zz">큐레이터</span></span>
+    </div>
+    <nav id="roundPills" aria-label="방문객 진행 상황"></nav>
+    <div class="top-actions">
+      <span class="chip"><svg width="16" height="16" viewBox="0 0 24 24" style="fill:#FFD35C;stroke:#FFD35C"><use href="#starSym"/></svg>별 <b id="starTotal">0</b></span>
+      <button id="muteBtn" class="icon-btn" type="button" aria-label="소리 켜기/끄기" aria-pressed="false">
+        <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true">
+          <path d="M4 9v6h4l5 4V5L8 9H4z" fill="currentColor"/>
+          <g class="snd-waves" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+            <path d="M16 9.5a4 4 0 010 5"/><path d="M18.5 7.5a7 7 0 010 9"/>
+          </g>
+        </svg>
+      </button>
+    </div>
+  </header>
+
+  <main class="stage">
+    <section class="panel" aria-label="방문객과 전시대">
+      <div class="box">
+        <div class="box-title">오늘의 방문객</div>
+        <div id="requestCard">
+          <div class="rq-who" id="rqWho">—</div>
+          <div class="rq-ask" id="rqAsk">자료를 준비 중이에요</div>
+        </div>
+      </div>
+      <div class="box">
+        <div class="box-title">전시대 · 3장 걸기</div>
+        <div id="slots">
+          <div class="slot" id="slot0">빈 전시대</div>
+          <div class="slot" id="slot1">빈 전시대</div>
+          <div class="slot" id="slot2">빈 전시대</div>
+        </div>
+      </div>
+      <div class="box">
+        <div id="mascotRow">
+          <svg id="mascotBig" aria-hidden="true"><use href="#hatchSym"/></svg>
+          <div class="bubble" id="bubble" role="status" aria-live="polite">안녕! 나는 서울의 수호동물 해치. 가짜 자랑은 못 넘어간다!</div>
+        </div>
+      </div>
+    </section>
+
+    <section class="board-card" aria-label="서울 자랑 카드">
+      <div id="boardHead">
+        <span id="boardTitle">서울 자랑 후보 카드</span>
+        <span id="boardSub">어울리는 3장만 전시대로!</span>
+      </div>
+      <div id="cardGrid"></div>
+    </section>
+  </main>
+</div>
+
+<div class="overlay" id="introOv" role="dialog" aria-modal="true" aria-label="게임 소개">
+  <div class="modal">
+    <svg width="86" height="86" aria-hidden="true"><use href="#hatchSym"/></svg>
+    <h2>서울 자랑 전시회 개관 준비!</h2>
+    <p class="sub">당신은 오늘의 큐레이터. 방문객 4명의 요청서를 받아 전시를 꾸며요.</p>
+    <div class="rules" style="text-align:left">
+      <div class="rule"><b>① 요청서 읽기</b><p>방문객마다 보고 싶은 서울이 달라요. 역사·음식·자연·요즘 서울!</p></div>
+      <div class="rule"><b>② 카드 3장 전시</b><p>요청에 맞는 진짜 서울 자랑 카드를 골라 전시대에 걸어요.</p></div>
+      <div class="rule"><b>③ 가짜 자랑 걸러내기</b><p>틀린 사실이 적힌 가짜 카드가 숨어 있어요. 해치와 함께 잡아내요.</p></div>
+      <div class="rule"><b>④ 인증서 받기</b><p>4명의 방문객을 모두 만족시키면 서울 자랑 큐레이터 인증!</p></div>
+    </div>
+    <button class="btn" id="startBtn" type="button">개관 시작!</button>
+  </div>
+</div>
+
+<div class="overlay" id="clearOv" role="dialog" aria-modal="true" hidden>
+  <div class="modal">
+    <h2 id="clearTitle">전시 완성!</h2>
+    <div class="starsRow" id="clearStars"></div>
+    <div class="factlist" id="clearFacts"></div>
+    <button class="btn" id="nextBtn" type="button">다음 방문객 맞이하기</button>
+  </div>
+</div>
+
+<div class="overlay" id="endOv" role="dialog" aria-modal="true" hidden>
+  <div class="modal">
+    <svg width="86" height="86" aria-hidden="true"><use href="#hatchSym"/></svg>
+    <h2>서울 자랑 큐레이터 인증서</h2>
+    <div class="starsRow" id="certStars"></div>
+    <p class="sub" id="certLine"></p>
+    <div class="factlist" id="endFacts"></div>
+    <button class="btn" id="retryBtn" type="button">다시 큐레이션하기</button>
+  </div>
+</div>
+
+<script>
+"use strict";
+/* ===== 방문객 & 서울 자랑 카드 =====
+ * 각 라운드: 진짜·주제 일치 3장 / 진짜·다른 주제 2장 / 가짜(틀린 사실) 1장 */
+const VISITORS = [
+  { who:"역사 탐험가 할아버지",
+    ask:"조선 시대 서울이 궁금해요. 역사 자랑 3장만 골라 주세요!",
+    cards:[
+      {n:"경복궁", fit:1, f:"1395년에 지어진 조선의 대궐이에요. 광화문 앞 수문장 교대식도 유명하죠."},
+      {n:"숭례문", fit:1, f:"조선 도성의 남쪽 문으로, 국보로 지정된 소중한 문이에요."},
+      {n:"한양도성길", fit:1, f:"조선이 한양을 둘레로 쌓은 돌 성벽! 지금도 성곽 위를 걸을 수 있어요."},
+      {n:"광장시장", fit:2, f:"1905년에 개장한 전통시장이에요. 빈대떡 냄새가 진짜 매력!", why:"진짜 자랑이지만, 음식 여행자의 몫이에요."},
+      {n:"여의도 한강공원", fit:2, f:"한강변 넓은 공원이에요. 봄에는 벚꽃이 만발해요.", why:"진짜 자랑이지만, 자연 산책가의 몫이에요."},
+      {n:"보신각", fit:0, f:"보신각 종은 50년 전에 녹슬어서 이제 종소리가 나지 않아요.",
+        truth:"보신각은 지금도 제야의 종 타종 행사로 새해 종소리를 울려요!"}
+    ]},
+  { who:"세계 음식 여행자",
+    ask:"서울에서 맛있는 게 최고! 음식 자랑 3장만 골라 주세요!",
+    cards:[
+      {n:"광장시장 빈대떡", fit:1, f:"비 오는 날 빈대떡이 최고라는 말이 있어요. 시장 안 곳곳에서 파닥파닥 구워요."},
+      {n:"남대문시장", fit:1, f:"숭례문 바로 앞에 있는 큰 전통시장! 먹거리 골목이 가득해요."},
+      {n:"명동의 칼국수", fit:1, f:"1966년부터 이어져 온 명동의 칼국수 집이 있어요. 손수 벤 면발이 살아 있죠."},
+      {n:"경복궁", fit:2, f:"1395년에 지어진 조선의 대궐이에요.", why:"멋진 자랑이지만, 역사 탐험가의 몫이에요."},
+      {n:"남산", fit:2, f:"도심 한가운데 있는 산이에요. 전망대에서 서울이 내려다보여요.", why:"진짜 자랑이지만, 자연 산책가의 몫이에요."},
+      {n:"바다 횟집 골목", fit:0, f:"서울은 바다와 맞닿아 있어 골목마다 갓 잡은 생선을 파는 횟집이 있어요.",
+        truth:"서울은 바다가 없는 내륙 도시예요! 생선은 노량진·가락시장으로 들여와요."}
+    ]},
+  { who:"자연 산책가",
+    ask:"서울에서 자연을 만끽하고 싶어요. 자연 자랑 3장만 골라 주세요!",
+    cards:[
+      {n:"북한산국립공원", fit:1, f:"도심 바로 북쪽에 붙은 국립공원이에요. 등산객으로 북적이죠."},
+      {n:"남산", fit:1, f:"도심 한가운데 있는 산이에요. 봄에는 벚꽃이 흐드러져요."},
+      {n:"한강 자전거길", fit:1, f:"한강을 따라 공원과 자전거길이 쭉 이어져요."},
+      {n:"DDP", fit:2, f:"동대문디자인플라자! 곡선이 어우러진 건축물이에요.", why:"멋진 자랑이지만, 요즘 서울 팬의 몫이에요."},
+      {n:"광장시장", fit:2, f:"1905년에 개장한 전통시장이에요.", why:"진짜 자랑이지만, 음식 여행자의 몫이에요."},
+      {n:"우이천", fit:0, f:"우이천은 서울에서 가장 긴 강이에요. 한강보다 훨씬 길어요!",
+        truth:"서울의 최대 강은 한강이에요. 우이천은 한강으로 흘러드는 작은 시내예요."}
+    ]},
+  { who:"요즘 서울 팬 초등학생",
+    ask:"요즘 서울이 궁금해요! 새로운 서울 자랑 3장만 골라 주세요!",
+    cards:[
+      {n:"DDP", fit:1, f:"동대문디자인플라자! 곡선이 어우러진 건축물로, 밤에 조명이 환하게 빛나요."},
+      {n:"서울 지하철", fit:1, f:"1974년 1호선부터 시작해, 지금도 노선이 계속 늘어나고 있어요."},
+      {n:"청계천", fit:1, f:"2005년에 도로를 걷어내고 도심 한복판으로 복원한 시내예요."},
+      {n:"숭례문", fit:2, f:"조선 도성의 남쪽 문으로, 국보로 지정된 문이에요.", why:"오래된 자랑이지만, 역사 탐험가의 몫이에요."},
+      {n:"북한산국립공원", fit:2, f:"도심 바로 북쪽에 붙은 국립공원이에요.", why:"진짜 자랑이지만, 자연 산책가의 몫이에요."},
+      {n:"한강 위 유람선", fit:0, f:"한강 위에 떠 있는 유람선 섬이 매일 남산까지 항해해요.",
+        truth:"세빛섬은 배처럼 생겼지만 한강 위에 고정된 건축물이에요. 항해하지 않아요!"}
+    ]}
+];
+
+/* ===== 상태 ===== */
+const state = { r:0, hung:0, mistakes:0, stars:0, muted:false };
+const $ = id => document.getElementById(id);
+
+function say(text, mood){
+  const b = $("bubble");
+  b.textContent = text;
+  b.className = "bubble" + (mood ? " " + mood : "");
+}
+function starIcon(on){
+  return '<svg viewBox="0 0 24 24"><use href="#starSym" class="'+(on?"star-big":"star-off")+'"/></svg>';
+}
+
+/* ===== 소리 ===== */
+let AC = null;
+function tone(freq, dur, delay, type, vol){
+  if(state.muted) return;
+  try{
+    AC = AC || new (window.AudioContext || window.webkitAudioContext)();
+    if(AC.state === "suspended") AC.resume();
+    const t = AC.currentTime + (delay||0);
+    const o = AC.createOscillator(), g = AC.createGain();
+    o.type = type||"sine"; o.frequency.value = freq;
+    g.gain.setValueAtTime(vol||.15, t);
+    g.gain.exponentialRampToValueAtTime(.001, t+dur);
+    o.connect(g); g.connect(AC.destination);
+    o.start(t); o.stop(t+dur);
+  }catch(e){}
+}
+const sfx = {
+  pop(){ tone(660,.12); tone(880,.14,.08); },
+  wrong(){ tone(150,.2,0,"square",.08); },
+  fake(){ tone(200,.12,0,"square",.1); tone(140,.22,.12,"square",.1); },
+  win(){ tone(523,.14); tone(659,.14,.12); tone(784,.3,.24); }
+};
+$("muteBtn").addEventListener("click", function(){
+  state.muted = !state.muted;
+  this.setAttribute("aria-pressed", state.muted);
+});
+/* ===== 라운드 진행 ===== */
+function buildPills(){
+  $("roundPills").innerHTML = VISITORS.map((_,i)=>
+    '<span class="pill" id="pill'+i+'">'+(i+1)+'</span>').join("");
+}
+function refreshPills(){
+  VISITORS.forEach((_,i)=>{
+    $("pill"+i).className = "pill" + (i<state.r?" done":i===state.r?" active":"");
+  });
+}
+
+let V = null;
+function startRound(){
+  V = VISITORS[state.r];
+  state.hung = 0; state.mistakes = 0;
+  refreshPills();
+  const rc = $("requestCard");
+  $("rqWho").textContent = "· " + V.who + " ·";
+  $("rqAsk").textContent = V.ask;
+  rc.classList.remove("pop"); void rc.offsetWidth; rc.classList.add("pop");
+  for(let i=0;i<3;i++){
+    $("slot"+i).className = "slot";
+    $("slot"+i).textContent = "빈 전시대";
+  }
+  $("boardTitle").textContent = "서울 자랑 후보 카드";
+  const grid = $("cardGrid");
+  grid.innerHTML = "";
+  V.cards.forEach((c,i)=>{
+    const b = document.createElement("button");
+    b.className = "scard"; b.type = "button"; b.dataset.i = i;
+    b.innerHTML = '<span class="sn">'+c.n+'</span><span class="sf">'+c.f+'</span>';
+    b.addEventListener("click", onCardClick);
+    grid.appendChild(b);
+  });
+  say(V.who + "가 왔어! 요청서를 읽고 어울리는 자랑 3장을 골라 줘.", "cheer");
+}
+
+function onCardClick(evt){
+  const card = evt.currentTarget;
+  if(card.classList.contains("hung") || card.classList.contains("off") ||
+     card.classList.contains("fake")) return;
+  const c = V.cards[+card.dataset.i];
+  if(c.fit === 1){
+    card.classList.add("hung");
+    card.insertAdjacentHTML("beforeend", '<span class="stamp">전시 ★</span>');
+    const slot = $("slot"+state.hung);
+    slot.className = "slot filled";
+    slot.innerHTML = c.n + '<span class="sf">'+c.f+'</span>';
+    state.hung++;
+    sfx.pop();
+    if(state.hung === 1) say("첫 전시 걸렸다! 분위기가 산다고~ 두 장만 더!");
+    else if(state.hung === 2) say("전시대가 점점 채워져요! 마지막 한 장!");
+    setTimeout(openClear, 450);
+  }else if(c.fit === 0){
+    card.classList.add("fake");
+    card.insertAdjacentHTML("beforeend", '<span class="stamp">가짜 자랑!</span>');
+    state.mistakes++;
+    sfx.fake();
+    say("가짜 자랑 발견! 실제로는… " + c.truth, "warn");
+  }else{
+    card.classList.add("off");
+    card.insertAdjacentHTML("beforeend", '<span class="stamp">보류</span>');
+    state.mistakes++;
+    sfx.wrong();
+    say(c.why, "warn");
+  }
+}
+
+function openClear(){
+  const earned = state.mistakes >= 3 ? 1 : state.mistakes >= 1 ? 2 : 3;
+  state.stars += earned;
+  $("starTotal").textContent = state.stars;
+  $("clearTitle").textContent = V.who + " 만족! 전시 완성!";
+  $("clearStars").innerHTML = [1,2,3].map(i=>starIcon(i<=earned)).join("");
+  $("clearFacts").innerHTML = V.cards.filter(c=>c.fit===1)
+    .map(c=>'<div class="fx"><b>'+c.n+'</b><p>'+c.f+'</p></div>').join("");
+  $("nextBtn").textContent = state.r >= VISITORS.length-1 ? "인증서 받기" : "다음 방문객 맞이하기";
+  sfx.win();
+  $("clearOv").hidden = false;
+}
+$("nextBtn").addEventListener("click", ()=>{
+  $("clearOv").hidden = true;
+  if(state.r >= VISITORS.length-1){ openEnding(); return; }
+  state.r++;
+  startRound();
+});
+
+function openEnding(){
+  $("certStars").innerHTML = Array.from({length:12},(_,i)=>starIcon(i<state.stars)).join("");
+  $("certLine").textContent = "별 " + state.stars + " / 12 · 서울 자랑 카드 12장을 무사히 전시했어요!";
+  $("endFacts").innerHTML = VISITORS.map(v=>v.cards.filter(c=>c.fit===1))
+    .reduce((a,b)=>a.concat(b),[])
+    .map(c=>'<div class="fx"><b>'+c.n+'</b><p>'+c.f+'</p></div>').join("");
+  $("endOv").hidden = false;
+}
+$("retryBtn").addEventListener("click", ()=>{
+  state.r=0; state.stars=0;
+  $("starTotal").textContent = "0";
+  $("endOv").hidden = true;
+  startRound();
+});
+
+/* ===== 시작 ===== */
+$("startBtn").addEventListener("click", ()=>{
+  $("introOv").hidden = true;
+});
+buildPills();
+startRound();
+</script>
+</body>
+</html>
