@@ -1,0 +1,674 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>꺾꺾 조립공장</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='16' fill='%237A49FF'/%3E%3Cpolyline points='10,44 24,28 36,36 54,16' fill='none' stroke='%23FFD35C' stroke-width='7' stroke-linecap='round' stroke-linejoin='round'/%3E%3Ccircle cx='54' cy='16' r='5' fill='%23fff'/%3E%3C/svg%3E">
+<style>
+:root{
+  --bg:#F5F2FE;
+  --card:#FFFFFF;
+  --ink:#2E2849;
+  --muted:#7A72A0;
+  --line:#E7E1FA;
+  --grid:#D9D2F2;
+  --purple:#7A49FF;
+  --purple-deep:#5730C9;
+  --purple-soft:#EDE6FF;
+  --coral:#FF8A7A;
+  --coral-soft:#FFE9E6;
+  --sun:#FFD35C;
+  --mint:#3FBF9C;
+  --mint-soft:#E2F8F1;
+  --sky:#7FC8FF;
+  --shadow:0 10px 24px rgba(87,48,201,.10);
+}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{
+  font-family:"Segoe UI","Malgun Gothic","맑은 고딕",sans-serif;
+  color:var(--ink);
+  background:var(--bg);
+  background-image:radial-gradient(var(--grid) 1.2px,transparent 1.2px);
+  background-size:24px 24px;
+  -webkit-font-smoothing:antialiased;
+}
+#app{max-width:1060px;margin:0 auto;padding:14px 18px 30px}
+
+/* ── 상단바 ─────────────────────────── */
+#topbar{display:flex;align-items:center;gap:14px;flex-wrap:wrap;margin-bottom:14px}
+.brand{display:flex;align-items:center;gap:10px;font-size:20px;font-weight:800;letter-spacing:.02em}
+.brand b{color:var(--purple-deep)}
+.brand .zz{color:var(--coral)}
+.brand-mascot{width:42px;height:42px;flex:none}
+#roundPills{display:flex;gap:8px;align-items:center}
+.pill{width:30px;height:30px;border-radius:50%;border:2.5px solid var(--grid);background:var(--card);
+  font-size:13px;font-weight:800;color:var(--muted);display:grid;place-items:center;transition:.2s}
+.pill.active{border-color:var(--purple);color:var(--purple-deep);background:var(--purple-soft);transform:scale(1.12)}
+.pill.done{border-color:var(--mint);color:var(--mint);background:var(--mint-soft)}
+.top-actions{margin-left:auto;display:flex;gap:10px;align-items:center}
+.chip{display:inline-flex;align-items:center;gap:6px;background:var(--card);border:2px solid var(--grid);
+  border-radius:999px;padding:6px 14px;font-size:14px;font-weight:700}
+.chip .star-ico{width:16px;height:16px}
+.icon-btn{width:38px;height:38px;border-radius:50%;border:2px solid var(--grid);background:var(--card);
+  color:var(--ink);display:grid;place-items:center;cursor:pointer}
+.icon-btn:hover{border-color:var(--purple)}
+.icon-btn[aria-pressed="true"]{color:var(--muted)}
+.icon-btn .snd-waves{transition:opacity .15s}
+.icon-btn[aria-pressed="true"] .snd-waves{opacity:0}
+
+/* ── 배치 ─────────────────────────── */
+.stage{display:grid;grid-template-columns:296px 1fr;gap:16px;align-items:start}
+.panel{display:flex;flex-direction:column;gap:12px}
+.box{background:var(--card);border:2.5px solid var(--line);border-radius:18px;padding:14px}
+
+/* ── 왼쪽 패널: 자료 카드·마스코트·단계 ── */
+#deliveryBox{position:relative;overflow:hidden}
+#deliveryBox .box-label{display:flex;align-items:center;gap:8px;font-size:13px;font-weight:800;color:var(--purple-deep);
+  letter-spacing:.06em;margin-bottom:8px}
+.box-label::before{content:"";width:10px;height:10px;border-radius:3px;background:var(--sun);transform:rotate(45deg)}
+#dataCard{background:var(--purple-soft);border:2.5px dashed var(--purple);border-radius:16px;
+  padding:14px 14px 12px;text-align:center;min-height:118px;display:flex;flex-direction:column;
+  justify-content:center;gap:6px}
+#dataCard .dc-x{font-size:15px;font-weight:700;color:var(--muted)}
+#dataCard .dc-main{font-size:15px;font-weight:700}
+#dataCard .dc-val{font-size:38px;font-weight:800;color:var(--purple-deep);line-height:1.1;
+  font-variant-numeric:tabular-nums}
+#dataCard .dc-val small{font-size:18px;font-weight:700;margin-left:2px}
+#dataCard.pop{animation:cardPop .35s}
+#dotRow{display:flex;gap:7px;justify-content:center;margin-top:10px}
+.dot{width:12px;height:12px;border-radius:50%;border:2px solid var(--grid);background:var(--card)}
+.dot.on{background:var(--sun);border-color:var(--sun)}
+
+#mascotRow{display:flex;gap:10px;align-items:flex-start}
+#mascotBig{width:58px;height:58px;flex:none}
+.bubble{position:relative;background:var(--mint-soft);border:2px solid var(--mint);border-radius:14px;
+  padding:10px 12px;font-size:14px;font-weight:700;line-height:1.5;min-height:44px;flex:1}
+.bubble.warn{background:var(--coral-soft);border-color:var(--coral)}
+.bubble.cheer{background:var(--purple-soft);border-color:var(--purple)}
+.bubble::before{content:"";position:absolute;left:-9px;top:16px;width:14px;height:14px;
+  background:inherit;border-left:2px solid inherit;border-bottom:2px solid inherit;
+  transform:rotate(45deg);border-color:inherit}
+
+#stepsBox{display:flex;flex-direction:column;gap:8px}
+.step{display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:12px;
+  border:2px solid var(--line);color:var(--muted);font-size:14px;font-weight:700}
+.step .sn{width:24px;height:24px;border-radius:50%;border:2px solid currentColor;display:grid;
+  place-items:center;font-size:12px;flex:none}
+.step.now{border-color:var(--purple);color:var(--purple-deep);background:var(--purple-soft)}
+.step.ok{border-color:var(--mint);color:var(--mint)}
+
+/* ── 오른쪽: 조립판(보드) ── */
+.board-card{background:var(--card);border:2.5px solid var(--line);border-radius:22px;
+  padding:16px 18px 12px;box-shadow:var(--shadow)}
+#boardHead{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:6px}
+#boardTitle{font-size:19px;font-weight:800}
+#unitChip{font-size:12px;font-weight:800;color:var(--muted);border:2px solid var(--grid);
+  border-radius:999px;padding:3px 10px}
+#phaseBanner{margin-left:auto;font-size:14px;font-weight:800;color:var(--purple-deep);
+  background:var(--purple-soft);border-radius:999px;padding:5px 14px}
+#boardWrap{width:100%}
+#board{width:100%;height:auto;display:block;touch-action:manipulation}
+#board text{font-family:inherit}
+.xlab{font-size:16px;font-weight:700;fill:var(--ink)}
+.ylab{font-size:13px;font-weight:700;fill:var(--muted);font-variant-numeric:tabular-nums}
+.ghost{fill:none;stroke:var(--coral);stroke-width:3;stroke-dasharray:4 4;animation:ghostPulse 1s infinite}
+.pt{fill:var(--purple-deep);stroke:var(--card);stroke-width:3;cursor:pointer}
+.seg{fill:none;stroke:var(--purple);stroke-width:5;stroke-linecap:round;stroke-linejoin:round;
+  stroke-dasharray:1;stroke-dashoffset:1;animation:draw .4s forwards}
+.seg.good{stroke:var(--mint)}
+.seg.bad{stroke:var(--coral)}
+.seghit{fill:none;stroke:transparent;stroke-width:26;cursor:pointer}
+.flash{animation:flashRing .5s 3}
+@keyframes draw{to{stroke-dashoffset:0}}
+@keyframes ghostPulse{50%{opacity:.25}}
+@keyframes flashRing{50%{opacity:.2}}
+
+/* ── 버튼 ── */
+.btn{border:0;border-radius:14px;background:var(--purple);color:#fff;font-family:inherit;
+  font-size:16px;font-weight:800;padding:12px 22px;cursor:pointer;box-shadow:0 4px 0 var(--purple-deep)}
+.btn:active{transform:translateY(3px);box-shadow:0 1px 0 var(--purple-deep)}
+.btn.wide{width:100%}
+.btn-ghost{border:2.5px solid var(--purple);background:var(--card);color:var(--purple-deep);
+  border-radius:14px;font-family:inherit;font-size:15px;font-weight:800;padding:10px 18px;cursor:pointer}
+.btn-ghost:active{transform:translateY(2px)}
+
+/* ── 오버레이(인트로·라운드완료·엔딩) ── */
+.overlay{position:fixed;inset:0;background:rgba(46,40,73,.5);display:flex;align-items:center;
+  justify-content:center;padding:20px;z-index:50}
+.overlay[hidden]{display:none}
+.modal{background:var(--card);border-radius:24px;border:3px solid var(--purple-soft);
+  box-shadow:var(--shadow);max-width:600px;width:100%;padding:26px 28px;text-align:center;
+  max-height:92vh;overflow:auto}
+.modal h2{margin:0 0 6px;font-size:24px;font-weight:800}
+.modal .sub{margin:0 0 16px;color:var(--muted);font-size:14px;font-weight:700}
+.rules{display:grid;grid-template-columns:1fr 1fr;gap:10px;text-align:left;margin:0 0 18px}
+.rule{display:flex;gap:10px;align-items:flex-start;background:var(--bg);border-radius:14px;padding:10px 12px}
+.rule b{color:var(--purple-deep);font-size:15px}
+.rule p{margin:2px 0 0;font-size:13px;color:var(--muted);font-weight:600;line-height:1.45}
+.starsRow{display:flex;gap:8px;justify-content:center;margin:10px 0 14px}
+.starsRow svg{width:44px;height:44px}
+.star-big{fill:var(--sun);stroke:var(--sun)}
+.star-off{fill:none;stroke:var(--grid)}
+.vs{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:4px 0 14px}
+.mini{background:var(--bg);border-radius:16px;padding:10px 8px 6px}
+.mini svg{width:100%;height:auto;display:block}
+.mini p{margin:4px 0 0;font-size:12.5px;font-weight:800;color:var(--muted)}
+.mini.win{border:2.5px solid var(--mint)}
+.mini.win p{color:var(--mint)}
+#clearCaption{margin:0 0 16px;font-size:14px;font-weight:700;line-height:1.55;color:var(--ink);
+  background:var(--purple-soft);border-radius:14px;padding:10px 14px}
+#endingBadge{width:120px;height:120px;margin:2px auto 10px}
+.badge-card{background:var(--purple-soft);border:3px dashed var(--purple);border-radius:18px;
+  padding:14px;margin:0 0 16px}
+.badge-card .bl{font-size:13px;font-weight:800;letter-spacing:.08em;color:var(--purple-deep)}
+.badge-card .bt{font-size:22px;font-weight:800;margin:2px 0 4px}
+.badge-card .bs{font-size:13px;font-weight:700;color:var(--muted)}
+
+/* ── 애니메이션·반응형 ── */
+@keyframes cardPop{0%{transform:scale(.85);opacity:.4}60%{transform:scale(1.04)}100%{transform:scale(1)}}
+@keyframes popIn{0%{transform:scale(0)}70%{transform:scale(1.25)}100%{transform:scale(1)}}
+.pt{transform-box:fill-box;transform-origin:center;animation:popIn .3s}
+@keyframes shakeX{25%{transform:translateX(-4px)}75%{transform:translateX(4px)}}
+.shake{animation:shakeX .25s 2}
+.blinkArrow{animation:blink 1s infinite}
+@keyframes blink{50%{opacity:.25}}
+@media (max-width:780px){
+  .stage{grid-template-columns:1fr}
+  .rules{grid-template-columns:1fr}
+  #phaseBanner{margin-left:0}
+}
+@media (prefers-reduced-motion:reduce){
+  *,*::before,*::after{animation-duration:.01ms !important;transition-duration:.01ms !important}
+}
+</style>
+</head>
+<body>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <symbol id="mascotSym" viewBox="0 0 64 64">
+    <line x1="32" y1="12" x2="32" y2="8" stroke="#2E2849" stroke-width="3" stroke-linecap="round"/>
+    <circle cx="32" cy="5.5" r="3" fill="#FFD35C"/>
+    <circle cx="10" cy="37" r="4.5" fill="#5730C9"/>
+    <circle cx="54" cy="37" r="4.5" fill="#5730C9"/>
+    <rect x="12" y="12" width="40" height="28" rx="13" fill="#7A49FF"/>
+    <rect x="17" y="18" width="30" height="17" rx="8.5" fill="#FFFFFF"/>
+    <circle cx="26" cy="25" r="3" fill="#2E2849"/>
+    <circle cx="38" cy="25" r="3" fill="#2E2849"/>
+    <polyline points="22,29.5 27,27 32,29.5 37,27 42,29.5" fill="none" stroke="#2E2849"
+      stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+    <circle cx="21.5" cy="26.5" r="1.8" fill="#FF8A7A" opacity=".6"/>
+    <circle cx="42.5" cy="26.5" r="1.8" fill="#FF8A7A" opacity=".6"/>
+    <rect x="16" y="42" width="32" height="15" rx="8" fill="#5730C9"/>
+    <rect x="26" y="46" width="12" height="7" rx="3.5" fill="#FFD35C"/>
+  </symbol>
+  <symbol id="starSym" viewBox="0 0 24 24">
+    <path d="M12 2.5l2.9 5.9 6.5.9-4.7 4.6 1.1 6.5L12 17.3l-5.8 3.1 1.1-6.5L2.6 9.3l6.5-.9z"
+      stroke-linejoin="round" stroke-width="1.6"/>
+  </symbol>
+</svg>
+
+<div id="app">
+  <header id="topbar">
+    <div class="brand">
+      <svg class="brand-mascot" aria-hidden="true"><use href="#mascotSym"/></svg>
+      <span><b>꺾꺾</b> <span class="zz">조립공장</span></span>
+    </div>
+    <nav id="roundPills" aria-label="자료 진행 상황"></nav>
+    <div class="top-actions">
+      <span class="chip"><svg class="star-ico" aria-hidden="true"><use href="#starSym" class="star-big"/></svg>별 <b id="starTotal">0</b></span>
+      <button id="muteBtn" class="icon-btn" type="button" aria-label="소리 켜기/끄기" aria-pressed="false">
+        <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true">
+          <path d="M4 9v6h4l5 4V5L8 9H4z" fill="currentColor"/>
+          <g class="snd-waves" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+            <path d="M16 9.5a4 4 0 010 5"/><path d="M18.5 7.5a7 7 0 010 9"/>
+          </g>
+        </svg>
+      </button>
+    </div>
+  </header>
+  <main class="stage">
+    <section class="panel" aria-label="자료 배달">
+      <div class="box" id="deliveryBox">
+        <div class="box-label">배달된 자료</div>
+        <div id="dataCard">
+          <div class="dc-x" id="dcX">자료를 기다리는 중…</div>
+          <div class="dc-main" id="dcMain">시작 버튼을 눌러 주세요</div>
+          <div class="dc-val" id="dcVal" hidden></div>
+        </div>
+        <div id="dotRow" aria-hidden="true"></div>
+      </div>
+      <div class="box" id="mascotBox">
+        <div id="mascotRow">
+          <svg id="mascotBig" aria-hidden="true"><use href="#mascotSym"/></svg>
+          <div class="bubble" id="bubble" role="status" aria-live="polite">안녕! 나는 꺾꺾. 시간 순서로 오는 자료를 그래프로 조립하는 게 내 일이야!</div>
+        </div>
+      </div>
+      <div class="box" id="stepsBox" aria-label="오늘의 조립 단계">
+        <div class="step" id="step1"><span class="sn">1</span>점 찍기 · 자료를 눈금에 올려</div>
+        <div class="step" id="step2"><span class="sn">2</span>선 잇기 · 시간 순서대로 이어</div>
+        <div class="step" id="step3"><span class="sn">3</span>변화 찾기 · 기울기를 읽어</div>
+      </div>
+    </section>
+    <section class="board-card" aria-label="조립 판">
+      <div id="boardHead">
+        <span id="boardTitle">자료 준비 중…</span>
+        <span id="unitChip">단위</span>
+        <span id="phaseBanner">대기 중</span>
+      </div>
+      <div id="boardWrap">
+        <svg id="board" viewBox="0 0 760 460" role="img" aria-label="꺾은선그래프 조립 판"></svg>
+      </div>
+    </section>
+  </main>
+</div>
+
+<div class="overlay" id="introOv" role="dialog" aria-modal="true" aria-label="게임 소개">
+  <div class="modal">
+    <svg width="86" height="86" aria-hidden="true"><use href="#mascotSym"/></svg>
+    <h2>꺾꺾 조립공장에 오신 걸 환영해요!</h2>
+    <p class="sub">시간의 흐름을 담은 자료 4종이 배달됩니다. 그래프를 조립해요.</p>
+    <div class="rules">
+      <div class="rule"><b>① 점 찍기</b><p>배달된 자료를 보고 시간(가로)과 값(세로)이 만나는 자리에 점을 찍어요.</p></div>
+      <div class="rule"><b>② 선 잇기</b><p>시간은 거꾸로 가지 않아요! 왼쪽부터 차례대로 점을 눌러 선을 이어요.</p></div>
+      <div class="rule"><b>③ 변화 찾기</b><p>가파른 선은 큰 변화, 수평선은 변화 없음. 그래프가 말을 걸어와요.</p></div>
+      <div class="rule"><b>④ 별 모으기</b><p>실수 없이 조립하면 별이 가득! 4개의 자료를 모두 완성해요.</p></div>
+    </div>
+    <button class="btn" id="startBtn" type="button">조립 시작!</button>
+  </div>
+</div>
+
+<div class="overlay" id="clearOv" role="dialog" aria-modal="true" hidden>
+  <div class="modal">
+    <h2 id="clearTitle">자료 완성!</h2>
+    <div class="starsRow" id="clearStars"></div>
+    <div class="vs" id="clearVs"></div>
+    <p id="clearCaption"></p>
+    <button class="btn" id="nextBtn" type="button">다음 자료 받기</button>
+  </div>
+</div>
+
+<div class="overlay" id="endOv" role="dialog" aria-modal="true" hidden>
+  <div class="modal">
+    <div class="badge-card">
+      <p class="bl">GRAPH FACTORY</p>
+      <p class="bt">오늘의 조립 기록</p>
+      <p class="bs" id="endStarsLine"></p>
+    </div>
+    <div class="starsRow" id="endStars"></div>
+    <svg id="endingBadge" aria-hidden="true"><use href="#mascotSym"/></svg>
+    <h2 id="endTitle"></h2>
+    <p class="sub" id="endSub"></p>
+    <button class="btn" id="retryBtn" type="button">다시 조립하기</button>
+  </div>
+</div>
+
+<script>
+"use strict";
+/* ===== 데이터: 4학년 맥락의 자료 4종 =====
+ * 각 자료는 "시간의 흐름 + 값"이라는 꺾은선그래프의 뿌리를 다르게 조명한다.
+ * 1) 오르다 내려오기(하루 온도) 2) 끝이 수평(변화 없음)
+ * 3) 오르내림 반복(왔다 갔다) 4) 계속 내려가기(식는 물) */
+const ROUNDS = [
+  { title:"하루 온도", unit:"℃", xLabels:["6시","9시","12시","15시","18시"],
+    values:[13,16,20,18,15], ymax:20, step:5,
+    qText:"가장 크게 오른 구간(가장 가파른 오르막)은 어디일까?", qSeg:1,
+    caption:"아침부터 정오까지 온도가 크게 올라가고, 오후부터는 내려가요. 가파른 오르막=큰 변화!" },
+  { title:"강낭콩 키 재기", unit:"cm", xLabels:["월","화","수","목","금"],
+    values:[12,14,16,17,17], ymax:20, step:5,
+    qText:"변화가 없는(수평선인) 구간은 어디일까?", qSeg:3,
+    caption:"목요일과 금요일은 키가 같아요. 수평선은 '변화가 없다'는 뜻이에요." },
+  { title:"도서관 방문자 수", unit:"명", xLabels:["월","화","수","목","금"],
+    values:[25,40,30,45,38], ymax:50, step:10,
+    qText:"가장 크게 내려간 구간(가장 가파른 내리막)은 어디일까?", qSeg:1,
+    caption:"오르내림이 반복될 때도 꺾은선은 흐름을 한눈에 보여줘요." },
+  { title:"식어 가는 물 온도", unit:"℃", xLabels:["0분","5분","10분","15분","20분"],
+    values:[50,44,39,35,32], ymax:50, step:10,
+    qText:"가장 크게 내려간 구간은 어디일까?", qSeg:0,
+    caption:"뜨거운 물은 시간이 지나며 계속 차가워져요. 선이 쉬지 않고 내려가죠." }
+];
+
+/* ===== 상태 ===== */
+const state = { r:0, phase:"intro", placed:0, linked:0, mistakes:0,
+  stars:0, muted:false };
+
+/* ===== 유틸 ===== */
+const $ = id => document.getElementById(id);
+const SVG = "http://www.w3.org/2000/svg";
+function el(tag, attrs){
+  const e = document.createElementNS(SVG, tag);
+  for(const k in attrs) e.setAttribute(k, attrs[k]);
+  return e;
+}
+function say(text, mood){
+  const b = $("bubble");
+  b.textContent = text;
+  b.className = "bubble" + (mood ? " " + mood : "");
+}
+
+/* ===== 보드 좌표 =====
+ * viewBox 760x460, 그림 영역: x 64~736, y 28~432 */
+const PL = 64, PR = 736, PT = 28, PB = 432, PW = PR-PL, PH = PB-PT;
+let R = null;
+const colX = i => PL + i*(PW/(ROUNDS[0].xLabels.length-1));
+const yFor = v => PB - (v/R.ymax)*PH;
+
+/* ===== 소리 ===== */
+let AC = null;
+function tone(freq, dur, delay, type, vol){
+  if(state.muted) return;
+  try{
+    AC = AC || new (window.AudioContext || window.webkitAudioContext)();
+    if(AC.state === "suspended") AC.resume();
+    const t = AC.currentTime + (delay||0);
+    const o = AC.createOscillator(), g = AC.createGain();
+    o.type = type||"sine"; o.frequency.value = freq;
+    g.gain.setValueAtTime(vol||.15, t);
+    g.gain.exponentialRampToValueAtTime(.001, t+dur);
+    o.connect(g); g.connect(AC.destination);
+    o.start(t); o.stop(t+dur);
+  }catch(e){}
+}
+const sfx = {
+  pop(){ tone(660,.12); tone(880,.14,.08); },
+  link(){ tone(440,.08,0,"triangle",.12); },
+  wrong(){ tone(150,.2,0,"square",.08); },
+  ding(){ tone(1046,.35,0,"sine",.16); },
+  win(){ tone(523,.14); tone(659,.14,.12); tone(784,.3,.24); }
+};
+$("muteBtn").addEventListener("click", function(){
+  state.muted = !state.muted;
+  this.setAttribute("aria-pressed", state.muted);
+});
+/* ===== 보드 조립 ===== */
+let clickZone = null, gGhost = null;
+
+function buildBoard(){
+  const b = $("board");
+  b.innerHTML = "";
+  R = ROUNDS[state.r];
+
+  const gGrid = el("g",{});
+  for(let v=0; v<=R.ymax; v+=R.step){
+    const y = yFor(v);
+    gGrid.appendChild(el("line",{x1:PL,y1:y,x2:PR,y2:y,stroke:v===0?"#B9AEE8":"var(--grid)","stroke-width":v===0?3:1.5}));
+    const t = el("text",{x:PL-10,y:y+5,"text-anchor":"end",class:"ylab"});
+    t.textContent = v; gGrid.appendChild(t);
+  }
+  R.xLabels.forEach((lab,i)=>{
+    const x = colX(i);
+    gGrid.appendChild(el("line",{x1:x,y1:PT,x2:x,y2:PB,stroke:"var(--grid)","stroke-width":1.5,"stroke-dasharray":"3 6"}));
+    const t = el("text",{x:x,y:PB+30,"text-anchor":"middle",class:"xlab"});
+    t.textContent = lab; gGrid.appendChild(t);
+  });
+  b.appendChild(gGrid);
+
+  gGhost = el("circle",{r:12,class:"ghost",visibility:"hidden"});
+  b.appendChild(gGhost);
+
+  b.appendChild(el("g",{id:"gLines"}));
+  b.appendChild(el("g",{id:"gPts"}));
+  b.appendChild(el("g",{id:"gSegs"}));
+
+  const arrow = el("g",{id:"arrow",class:"blinkArrow"});
+  arrow.appendChild(el("path",{d:"M-8 0 L8 0 L0 10 Z",fill:"var(--coral)"}));
+  b.appendChild(arrow);
+  moveArrow(0);
+
+  clickZone = el("rect",{x:PL-20,y:PT-14,width:PW+40,height:PH+28,fill:"transparent"});
+  clickZone.addEventListener("click", onZoneClick);
+  b.appendChild(clickZone);
+
+  $("boardTitle").textContent = R.title;
+  $("unitChip").textContent = "단위 " + R.unit;
+  $("roundTitle").textContent = (state.r+1) + "번째 자료 · " + R.title;
+}
+
+function moveArrow(i){
+  const a = $("board").querySelector("#arrow");
+  if(!a) return;
+  a.setAttribute("transform","translate(" + colX(i) + " " + (PT+6) + ")");
+}
+
+/* ===== 자료 카드 & 점 찍기 ===== */
+function showCard(){
+  const dc = $("dataCard");
+  $("dcX").textContent = "· " + R.xLabels[state.placed] + " 자료 ·";
+  $("dcMain").textContent = R.title;
+  $("dcVal").hidden = false;
+  $("dcVal").innerHTML = R.values[state.placed] + "<small>" + R.unit + "</small>";
+  dc.classList.remove("pop"); void dc.offsetWidth; dc.classList.add("pop");
+  moveArrow(state.placed);
+  say(R.xLabels[state.placed] + " 자료가 도착했어! 세로 눈금에서 " +
+      R.values[state.placed] + R.unit + " 높이를 찾아 클릭해 줘.");
+}
+
+function onZoneClick(evt){
+  if(state.phase !== "points") return;
+  const svg = $("board");
+  const pt = svg.createSVGPoint(); pt.x = evt.clientX; pt.y = evt.clientY;
+  const p = pt.matrixTransform(svg.getScreenCTM().inverse());
+  const col = Math.round((p.x - PL) / (PW/(R.xLabels.length-1)));
+  if(col < 0 || col >= R.xLabels.length) return;
+
+  const target = R.values[state.placed];
+  if(col !== state.placed){
+    state.mistakes++;
+    sfx.wrong();
+    say("시간은 거꾸로 가지 않아! 지금은 " + R.xLabels[state.placed] + " 차례야.", "warn");
+    return;
+  }
+  const ty = yFor(target);
+  if(Math.abs(p.y - ty) <= 26){
+    gGhost.setAttribute("visibility","hidden");
+    const c = el("circle",{cx:colX(col),cy:ty,r:9,class:"pt","data-idx":col});
+    $("gPts").appendChild(c);
+    sfx.pop();
+    $("dotRow").children[state.placed].classList.add("on");
+    state.placed++;
+    if(state.placed < R.xLabels.length){
+      showCard();
+    }else{
+      $("arrow").setAttribute("visibility","hidden");
+      clickZone.style.pointerEvents = "none";
+      startConnect();
+    }
+  }else{
+    state.mistakes++;
+    sfx.wrong();
+    gGhost.setAttribute("cx",colX(col)); gGhost.setAttribute("cy",ty);
+    gGhost.setAttribute("visibility","visible");
+    say(p.y > ty ? "조금 더 위로! " + target + R.unit + "는 위쪽 눈금이야."
+                 : "조금 더 아래로! " + target + R.unit + "는 아래쪽 눈금이야.", "warn");
+  }
+}
+
+/* ===== 선 잇기 ===== */
+function startConnect(){
+  state.phase = "connect";
+  state.linked = 0;
+  setPhaseBanner("② 선 잇기");
+  setStep(2);
+  say("점이 다 놓였다! 시간 순서대로 점을 클릭해 왼쪽부터 선을 이어 보자.");
+  document.querySelectorAll("#gPts .pt").forEach(c=>{
+    c.classList.add("ready");
+  });
+}
+
+function onPointClick(evt){
+  if(state.phase !== "connect") return;
+  const idx = +evt.currentTarget.dataset.idx;
+  if(idx !== state.linked + 1){
+    state.mistakes++;
+    sfx.wrong();
+    say("순서대로! 시간은 거꾸로 못 가. 다음은 " + R.xLabels[state.linked+1] + "!", "warn");
+    return;
+  }
+  drawSeg(state.linked, idx);
+  state.linked++;
+  sfx.link();
+  if(state.linked >= R.xLabels.length - 1){
+    setTimeout(startCompare, 450);
+  }
+}
+
+function drawSeg(a,b){
+  const l = el("line",{x1:colX(a),y1:yFor(R.values[a]),x2:colX(b),y2:yFor(R.values[b]),
+    class:"seg",pathLength:"1"});
+  $("gLines").appendChild(l);
+}
+/* 점 클릭은 연결 단계에서만 */
+document.addEventListener("click", evt=>{
+  const pt = evt.target.closest && evt.target.closest("#gPts .pt");
+  if(pt) onPointClick({currentTarget:pt});
+});
+/* ===== 변화 찾기(비교) ===== */
+function startCompare(){
+  state.phase = "compare";
+  setPhaseBanner("③ 변화 찾기");
+  setStep(3);
+  say(R.qText, "cheer");
+  R.xLabels.forEach((_,i)=>{
+    if(i===0) return;
+    const h = el("line",{x1:colX(i-1),y1:yFor(R.values[i-1]),x2:colX(i),y2:yFor(R.values[i]),
+      class:"seghit","data-seg":i-1});
+    h.addEventListener("click", onSegClick);
+    $("gSegs").appendChild(h);
+  });
+}
+
+function onSegClick(evt){
+  const seg = +evt.currentTarget.dataset.seg;
+  if(seg === R.qSeg){
+    evt.currentTarget.style.pointerEvents = "none";
+    $("gLines").children[seg].classList.add("good");
+    sfx.ding();
+    const earned = state.mistakes >= 3 ? 1 : state.mistakes >= 1 ? 2 : 3;
+    state.stars += earned;
+    $("starTotal").textContent = state.stars;
+    openClear(earned);
+  }else{
+    state.mistakes++;
+    sfx.wrong();
+    evt.currentTarget.classList.add("shake");
+    setTimeout(()=>evt.currentTarget.classList.remove("shake"), 600);
+    say("잠깐! 선의 기울기를 다시 보자. 가장 가파른 곳이 가장 큰 변화야.", "warn");
+  }
+}
+
+/* ===== 미니 그래프(라운드 완료 모달용) ===== */
+function miniBars(r){
+  const n=r.values.length, L=24, B=104, T=12, W=220;
+  let s = '<svg viewBox="0 0 220 130">';
+  const bw = (W-L-10)/n*0.6, gap=(W-L-10)/n;
+  r.values.forEach((v,i)=>{
+    const h=(v/r.ymax)*(B-T), x=L+i*gap+(gap-bw)/2;
+    s += '<rect x="'+x+'" y="'+(B-h)+'" width="'+bw+'" height="'+h+'" rx="4" fill="#C9B6FF" stroke="#7A49FF" stroke-width="2"/>';
+  });
+  s += '<line x1="'+L+'" y1="'+B+'" x2="'+W+'" y2="'+B+'" stroke="#B9AEE8" stroke-width="3"/>';
+  s += '</svg>';
+  return s;
+}
+function miniLine(r){
+  const n=r.values.length, L=24, B=104, T=12, W=220;
+  let pts=[];
+  r.values.forEach((v,i)=>{ pts.push((L+i*((W-L-10)/(n-1)))+","+(B-(v/r.ymax)*(B-T))); });
+  let s = '<svg viewBox="0 0 220 130">';
+  s += '<polyline points="'+pts.join(" ")+'" fill="none" stroke="#7A49FF" stroke-width="4" stroke-linejoin="round" stroke-linecap="round"/>';
+  pts.forEach(p=>{ const c=p.split(",");
+    s += '<circle cx="'+c[0]+'" cy="'+c[1]+'" r="4.5" fill="#5730C9" stroke="#fff" stroke-width="2"/>'; });
+  s += '<line x1="'+L+'" y1="'+B+'" x2="'+W+'" y2="'+B+'" stroke="#B9AEE8" stroke-width="3"/>';
+  s += '</svg>';
+  return s;
+}
+function starIcon(on){
+  return '<svg viewBox="0 0 24 24"><use href="#starSym" class="'+(on?"star-big":"star-off")+'"/></svg>';
+}
+
+/* ===== 모달 & 라운드 흐름 ===== */
+function openClear(earned){
+  $("clearTitle").textContent = R.title + " 조립 완성!";
+  $("clearStars").innerHTML = [1,2,3].map(i=>starIcon(i<=earned)).join("");
+  $("clearVs").innerHTML =
+    '<div class="mini"><p>막대그래프 · 값 따로따로</p>' + miniBars(R) + '</div>' +
+    '<div class="mini win"><p>꺾은선그래프 · 흐름이 보여!</p>' + miniLine(R) + '</div>';
+  $("clearCaption").textContent = R.caption;
+  $("nextBtn").textContent = state.r >= ROUNDS.length-1 ? "끝내기" : "다음 자료 받기";
+  sfx.win();
+  $("clearOv").hidden = false;
+}
+$("nextBtn").addEventListener("click", ()=>{
+  $("clearOv").hidden = true;
+  if(state.r >= ROUNDS.length-1){ openEnding(); return; }
+  state.r++;
+  startRound();
+});
+
+function openEnding(){
+  const s = state.stars, max = ROUNDS.length*3;
+  $("endStars").innerHTML = Array.from({length:max},(_,i)=>starIcon(i<s)).join("");
+  $("endStarsLine").textContent = "자료 " + ROUNDS.length + "개 완성 · 별 " + s + " / " + max;
+  $("endTitle").textContent = s>=10 ? "꺾은선 그래프 대장 기술자!"
+    : s>=7 ? "훌륭한 그래프 기술자!"
+    : s>=4 ? "쑥쑥 자라는 견습 기술자!"
+    : "다시 조립해보면 더 멋질 거야!";
+  $("endSub").textContent = "시간의 흐름 속 변화, 이제 눈금과 기울기로 읽을 수 있어요.";
+  $("endOv").hidden = false;
+}
+$("retryBtn").addEventListener("click", ()=>{
+  state.r=0; state.stars=0; state.mistakes=0;
+  $("starTotal").textContent = "0";
+  $("endOv").hidden = true;
+  startRound();
+});
+
+/* ===== 공용 UI ===== */
+function setPhaseBanner(t){ $("phaseBanner").textContent = t; }
+function setStep(n){
+  [1,2,3].forEach(i=>{
+    const s = $("step"+i);
+    s.classList.toggle("now", i===n);
+    s.classList.toggle("ok", i<n);
+  });
+}
+function buildPills(){
+  $("roundPills").innerHTML = ROUNDS.map((_,i)=>
+    '<span class="pill" id="pill'+i+'">'+(i+1)+'</span>').join("");
+}
+function refreshPills(){
+  ROUNDS.forEach((_,i)=>{
+    const p = $("pill"+i);
+    p.className = "pill" + (i<state.r?" done":i===state.r?" active":"");
+  });
+}
+function buildDots(){
+  $("dotRow").innerHTML = R.xLabels.map(()=>'<span class="dot"></span>').join("");
+}
+
+function startRound(){
+  state.phase="points"; state.placed=0; state.linked=0; state.mistakes=0;
+  refreshPills(); buildDots(); buildBoard();
+  setPhaseBanner("① 점 찍기"); setStep(1);
+  showCard();
+}
+
+$("startBtn").addEventListener("click", ()=>{
+  $("introOv").hidden = true;
+  startRound();
+});
+
+/* ===== 시작 ===== */
+buildPills();
+buildBoard();
+refreshPills();
+buildDots();
+$("phaseBanner").textContent = "대기 중";
+window.addEventListener('message', e=>{
+  const t = e.data && e.data.elicecodeTheme;
+  if(t === 'system') document.documentElement.removeAttribute('data-theme');
+  else if(t === 'light' || t === 'dark') document.documentElement.setAttribute('data-theme', t);
+});
+</script>
+</body>
+</html>
