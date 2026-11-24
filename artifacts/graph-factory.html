@@ -168,6 +168,14 @@ body{
 .badge-card .bt{font-size:22px;font-weight:800;margin:2px 0 4px}
 .badge-card .bs{font-size:13px;font-weight:700;color:var(--muted)}
 
+/* ── 사이 값 읽기 선택지 ── */
+.ipOpt{display:block;width:100%;border:2.5px solid var(--purple);background:var(--card);
+  color:var(--purple-deep);border-radius:14px;font-family:inherit;font-size:16px;font-weight:800;
+  padding:11px 16px;margin-bottom:8px;cursor:pointer}
+.ipOpt:hover{background:var(--purple-soft)}
+.ipOpt.good{border-color:var(--mint);background:var(--mint-soft);color:var(--ink)}
+.ipOpt.bad{border-color:var(--coral);background:var(--coral-soft);animation:shakeX .25s 2}
+
 /* ── 애니메이션·반응형 ── */
 @keyframes cardPop{0%{transform:scale(.85);opacity:.4}60%{transform:scale(1.04)}100%{transform:scale(1)}}
 @keyframes popIn{0%{transform:scale(0)}70%{transform:scale(1.25)}100%{transform:scale(1)}}
@@ -251,6 +259,7 @@ body{
         <div class="step" id="step1"><span class="sn">1</span>점 찍기 · 자료를 눈금에 올려</div>
         <div class="step" id="step2"><span class="sn">2</span>선 잇기 · 시간 순서대로 이어</div>
         <div class="step" id="step3"><span class="sn">3</span>변화 찾기 · 기울기를 읽어</div>
+        <div class="step" id="step4"><span class="sn">4</span>사이 값 읽기 · 선 위의 대략적인 값</div>
       </div>
     </section>
     <section class="board-card" aria-label="조립 판">
@@ -275,7 +284,7 @@ body{
       <div class="rule"><b>① 점 찍기</b><p>배달된 자료를 보고 시간(가로)과 값(세로)이 만나는 자리에 점을 찍어요.</p></div>
       <div class="rule"><b>② 선 잇기</b><p>시간은 거꾸로 가지 않아요! 왼쪽부터 차례대로 점을 눌러 선을 이어요.</p></div>
       <div class="rule"><b>③ 변화 찾기</b><p>가파른 선은 큰 변화, 수평선은 변화 없음. 그래프가 말을 걸어와요.</p></div>
-      <div class="rule"><b>④ 별 모으기</b><p>실수 없이 조립하면 별이 가득! 4개의 자료를 모두 완성해요.</p></div>
+      <div class="rule"><b>④ 사이 값 읽기</b><p>선이 있으면 점 사이의 값도 대략 알 수 있어요. 고르고 별을 모아요.</p></div>
     </div>
     <button class="btn" id="startBtn" type="button">조립 시작!</button>
   </div>
@@ -288,6 +297,16 @@ body{
     <div class="vs" id="clearVs"></div>
     <p id="clearCaption"></p>
     <button class="btn" id="nextBtn" type="button">다음 자료 받기</button>
+  </div>
+</div>
+
+<div class="overlay" id="ipOv" role="dialog" aria-modal="true" hidden>
+  <div class="modal">
+    <h2>사이 값 읽기</h2>
+    <p class="sub">선이 점과 점을 이어 주니까, 사이 시각의 값도 대략 알 수 있어요.</p>
+    <p style="font-size:17px;font-weight:800;margin:0 0 14px" id="ipAsk"></p>
+    <div id="ipOpts"></div>
+    <p class="sub" id="ipFb" style="margin:4px 0 0;color:var(--coral)"></p>
   </div>
 </div>
 
@@ -316,19 +335,23 @@ const ROUNDS = [
   { title:"하루 온도", unit:"℃", xLabels:["6시","9시","12시","15시","18시"],
     values:[12,14,20,18,14], ymax:20, step:2,
     qText:"가장 크게 오른 구간(가장 가파른 오르막)은 어디일까?", qSeg:1,
+    ip:{ask:"선이 잇고 있으니, 13시쯤 온도는 대략 몇 도일까?", opts:["16도쯤","19도쯤","22도쯤"], a:1},
     caption:"아침부터 정오까지 온도가 크게 올라가고, 오후부터는 내려가요. 가파른 오르막=큰 변화!" },
   { title:"강낭콩 키 재기", unit:"cm", xLabels:["월","화","수","목","금"],
     values:[10,12,14,16,16], ymax:20, step:2,
     qText:"변화가 없는(수평선인) 구간은 어디일까?", qSeg:3,
+    ip:{ask:"수요일과 목요일 사이(4일 반쯤)의 키는 대략 몇 cm일까?", opts:["13cm쯤","15cm쯤","17cm쯤"], a:1},
     caption:"목요일과 금요일은 키가 같아요. 수평선은 '변화가 없다'는 뜻이에요." },
   { title:"도서관 방문자 수", unit:"명", xLabels:["월","화","수","목","금"],
     values:[25,40,30,50,35], ymax:50, step:5,
     qText:"가장 크게 내려간 구간(가장 가파른 내리막)은 어디일까?", qSeg:1,
+    ip:{ask:"화요일과 수요일 사이쯤의 방문자는 대략 몇 명일까?", opts:["25명쯤","35명쯤","45명쯤"], a:1},
     caption:"오르내림이 반복될 때도 꺾은선은 흐름을 한눈에 보여줘요." },
   { title:"식어 가는 물 온도", unit:"℃", xLabels:["0분","5분","10분","15분","20분"],
     values:[50,45,35,30,25], ymax:50, step:5,
     qText:"가장 크게 내려간 구간은 어디일까?", qSeg:1,
     hint:"각 구간에서 몇 도씩 내려갔는지 세어 보자!",
+    ip:{ask:"7분쯤의 물 온도는 대략 몇 도일까?", opts:["37도쯤","41도쯤","45도쯤"], a:1},
     caption:"뜨거운 물은 시간이 지나며 계속 차가워져요. 선이 쉬지 않고 내려가죠." }
 ];
 
@@ -547,10 +570,7 @@ function onSegClick(evt){
     evt.currentTarget.style.pointerEvents = "none";
     $("gLines").children[seg].classList.add("good");
     sfx.ding();
-    const earned = state.mistakes >= 3 ? 1 : state.mistakes >= 1 ? 2 : 3;
-    state.stars += earned;
-    $("starTotal").textContent = state.stars;
-    openClear(earned);
+    startInterp();
   }else{
     state.mistakes++;
     sfx.wrong();
@@ -558,6 +578,36 @@ function onSegClick(evt){
     setTimeout(()=>evt.currentTarget.classList.remove("shake"), 600);
     say(R.hint || "잠깐! 선의 기울기를 다시 보자. 가장 가파른 곳이 가장 큰 변화야.", "warn");
   }
+}
+
+/* ===== 사이 값 읽기(연속성의 의미) ===== */
+function startInterp(){
+  state.phase = "interp";
+  setPhaseBanner("④ 사이 값 읽기");
+  setStep(4);
+  say("마지막 관문! 선이 이어 주니까 점과 점 사이의 값도 읽을 수 있어.", "cheer");
+  $("ipAsk").textContent = R.ip.ask;
+  $("ipFb").textContent = "";
+  const box = $("ipOpts"); box.innerHTML = "";
+  R.ip.opts.forEach((o,i)=>{
+    const b = document.createElement("button");
+    b.className = "ipOpt"; b.type = "button"; b.textContent = o;
+    b.addEventListener("click", ()=>{
+      if(i === R.ip.a){
+        b.classList.add("good");
+        sfx.ding();
+        setTimeout(openClear, 550);
+      }else{
+        state.mistakes++;
+        b.classList.add("bad");
+        setTimeout(()=>b.classList.remove("bad"), 600);
+        $("ipFb").textContent = "선을 따라 천천히 가보자. 두 점 사이의 중간쯤!";
+        sfx.wrong();
+      }
+    });
+    box.appendChild(b);
+  });
+  $("ipOv").hidden = false;
 }
 
 /* ===== 미니 그래프(라운드 완료 모달용) ===== */
@@ -590,7 +640,10 @@ function starIcon(on){
 }
 
 /* ===== 모달 & 라운드 흐름 ===== */
-function openClear(earned){
+function openClear(){
+  const earned = state.mistakes >= 3 ? 1 : state.mistakes >= 1 ? 2 : 3;
+  state.stars += earned;
+  $("starTotal").textContent = state.stars;
   $("clearTitle").textContent = R.title + " 조립 완성!";
   $("clearStars").innerHTML = [1,2,3].map(i=>starIcon(i<=earned)).join("");
   $("clearVs").innerHTML =
@@ -629,7 +682,7 @@ $("retryBtn").addEventListener("click", ()=>{
 /* ===== 공용 UI ===== */
 function setPhaseBanner(t){ $("phaseBanner").textContent = t; }
 function setStep(n){
-  [1,2,3].forEach(i=>{
+  [1,2,3,4].forEach(i=>{
     const s = $("step"+i);
     s.classList.toggle("now", i===n);
     s.classList.toggle("ok", i<n);
