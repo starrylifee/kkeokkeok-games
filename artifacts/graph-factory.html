@@ -600,7 +600,7 @@ function startInterp(){
       }else{
         state.mistakes++;
         b.classList.add("bad");
-        setTimeout(()=>b.classList.remove("bad"), 600);
+        b.disabled = true;
         $("ipFb").textContent = "선을 따라 천천히 가보자. 두 점 사이의 중간쯤!";
         sfx.wrong();
       }
@@ -641,6 +641,7 @@ function starIcon(on){
 
 /* ===== 모달 & 라운드 흐름 ===== */
 function openClear(){
+  $("ipOv").hidden = true;
   const earned = state.mistakes >= 3 ? 1 : state.mistakes >= 1 ? 2 : 3;
   state.stars += earned;
   $("starTotal").textContent = state.stars;
@@ -704,6 +705,7 @@ function buildDots(){
 
 function startRound(){
   state.phase="points"; state.placed=0; state.linked=0; state.mistakes=0;
+  $("ipOv").hidden = true;
   refreshPills(); buildDots(); buildBoard();
   setPhaseBanner("① 점 찍기"); setStep(1);
   showCard();
