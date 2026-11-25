@@ -111,6 +111,8 @@ body{
 .scard.fake .stamp{background:var(--coral-soft);color:var(--coral)}
 .scard.bad{animation:shakeX .25s 2}
 @keyframes shakeX{25%{transform:translateX(-4px)}75%{transform:translateX(4px)}}
+.qc-note{margin:2px 0 14px;font-size:12.5px;font-weight:700;color:var(--muted)}
+.qc-note a{color:var(--purple-deep);font-weight:800}
 
 /* ── 오버레이 ── */
 .overlay{position:fixed;inset:0;background:rgba(46,40,73,.5);display:flex;align-items:center;
@@ -395,6 +397,7 @@ body{
       <div class="rule"><b>③ 가짜 자랑 걸러내기</b><p>매 라운드 가짜가 세 장. 판정을 틀리면 해치가 진실을 알려 줘요.</p></div>
       <div class="rule"><b>④ 인증서 받기</b><p>4명의 방문객을 모두 만족시키면 서울 자랑 큐레이터 인증!</p></div>
     </div>
+    <p class="qc-note">이 게임은 우리 반 학생 의견 7건으로 다듬었어요 · <a href="../qc.html">QC 기록 보기</a></p>
     <button class="btn" id="startBtn" type="button">개관 시작!</button>
   </div>
 </div>

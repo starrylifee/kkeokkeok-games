@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>학생 QC 기록부 · 꺾꺾 게임공장</title>
+<link rel="icon" href="/favicon.ico" sizes="any">
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<meta property="og:title" content="학생 QC 기록부 — 꺾꺾 게임공장">
+<meta property="og:description" content="우리 반 학생이 고쳐 달라고 한 것, 이렇게 반영했어요">
+<meta property="og:image" content="https://kkeokkeok-games.vercel.app/og.png">
+<style>
+:root{
+  --bg:#F5F2FE; --card:#FFFFFF; --ink:#2E2849; --muted:#7A72A0;
+  --line:#E7E1FA; --grid:#D9D2F2;
+  --purple:#7A49FF; --purple-deep:#5730C9; --purple-soft:#EDE6FF;
+  --coral:#FF8A7A; --coral-soft:#FFE9E6;
+  --sun:#FFD35C; --mint:#3FBF9C; --mint-soft:#E2F8F1;
+  --shadow:0 10px 24px rgba(87,48,201,.10);
+}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{
+  font-family:"Segoe UI","Malgun Gothic","맑은 고딕",sans-serif;
+  color:var(--ink); background:var(--bg);
+  background-image:radial-gradient(var(--grid) 1.2px,transparent 1.2px);
+  background-size:24px 24px;
+}
+#app{max-width:880px;margin:0 auto;padding:22px 20px 50px}
+#topbar{display:flex;align-items:center;gap:12px;margin-bottom:18px}
+#topbar a{display:flex;align-items:center;gap:10px;text-decoration:none;color:inherit;font-size:18px;font-weight:800}
+#topbar a b{color:var(--purple-deep)}
+#topbar a svg{width:40px;height:40px}
+.home-link{margin-left:auto;font-size:14px;font-weight:800;color:var(--purple-deep);
+  text-decoration:none;border:2.5px solid var(--purple-soft);border-radius:999px;padding:7px 14px}
+.home-link:hover{border-color:var(--purple)}
+h1{font-size:26px;font-weight:800;margin:0 0 4px}
+h1 em{font-style:normal;color:var(--coral)}
+.lead{margin:0 0 22px;color:var(--muted);font-weight:700;font-size:15px;line-height:1.6}
+.qc{display:flex;flex-direction:column;gap:14px}
+.qitem{background:var(--card);border:2.5px solid var(--line);border-radius:20px;
+  box-shadow:var(--shadow);padding:16px 18px;display:flex;flex-direction:column;gap:10px}
+.qitem .row{display:flex;gap:12px;align-items:flex-start;flex-wrap:wrap}
+.qvoice{flex:1;min-width:240px;background:var(--coral-soft);border:2px dashed var(--coral);
+  border-radius:14px;padding:10px 14px;position:relative}
+.qvoice::before{content:"학생 말";position:absolute;top:-9px;left:12px;background:var(--coral);
+  color:#fff;font-size:10.5px;font-weight:800;border-radius:999px;padding:2px 8px}
+.qvoice p{margin:0;font-size:14.5px;font-weight:800;line-height:1.55}
+.qfix{flex:1.2;min-width:260px;background:var(--mint-soft);border:2px dashed var(--mint);
+  border-radius:14px;padding:10px 14px;position:relative}
+.qfix::before{content:"반영";position:absolute;top:-9px;left:12px;background:var(--mint);
+  color:#fff;font-size:10.5px;font-weight:800;border-radius:999px;padding:2px 8px}
+.qfix p{margin:0;font-size:13.5px;font-weight:700;line-height:1.6}
+.qdone{align-self:flex-start;font-size:12px;font-weight:800;color:var(--mint);
+  border:2px solid var(--mint);border-radius:999px;padding:3px 12px;background:var(--card)}
+.qnum{font-size:13px;font-weight:800;color:var(--muted)}
+.note{margin-top:24px;background:var(--purple-soft);border-radius:16px;padding:14px 18px;
+  font-size:13.5px;font-weight:700;color:var(--purple-deep);line-height:1.6;text-align:center}
+footer{margin-top:26px;text-align:center;color:var(--muted);font-size:13px;font-weight:700}
+footer a{color:var(--purple-deep);text-decoration:none}
+</style>
+</head>
+<body>
+<div id="app">
+  <header id="topbar">
+    <a href="/">
+      <svg viewBox="0 0 64 64" aria-hidden="true">
+        <rect width="64" height="64" rx="16" fill="#7A49FF"/>
+        <polyline points="10,44 24,28 36,36 54,16" fill="none" stroke="#FFD35C" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/>
+        <circle cx="54" cy="16" r="5" fill="#fff"/>
+      </svg>
+      <span><b>꺾꺾</b> 게임공장 · QC 기록부</span>
+    </a>
+    <a class="home-link" href="/">게임 하러 가기</a>
+  </header>
+
+  <h1>우리 반 학생이 <em>고쳐 달라고</em> 했어요!</h1>
+  <p class="lead">서울 자랑 큐레이터 시범 플레이(2026. 11. 25.)에서 나온 학생 수정 요청 7건.
+  이렇게 반영했습니다. 이 기록은 앞으로도 계속 쌓여요.</p>
+
+  <div class="qc">
+    <div class="qitem">
+      <div class="qnum">QC 1 · 진행</div>
+      <div class="row">
+        <div class="qvoice"><p>정답 오답 위치가 똑같아!</p></div>
+        <div class="qfix"><p>모든 라운드에서 앞 3장이 정답으로 고정돼 있었어요. 이제 카드 순서를 매 라운드 무작위로 섞습니다.</p></div>
+      </div>
+      <span class="qdone">반영 완료</span>
+    </div>
+
+    <div class="qitem">
+      <div class="qnum">QC 2 · 분야</div>
+      <div class="row">
+        <div class="qvoice"><p>음식이면 6칸이 모두 6개의 음식으로 나와야지, 음식이 아닌 카드가 있으면 안되지!</p></div>
+        <div class="qfix"><p>라운드마다 다른 분야 카드가 섞여 있었어요. 이제 음식 라운드는 음식 6장, 역사 라운드는 역사 6장 — 같은 분야의 진짜 3장 + 가짜 3장으로 바꿨어요.</p></div>
+      </div>
+      <span class="qdone">반영 완료</span>
+    </div>
+
+    <div class="qitem">
+      <div class="qnum">QC 3 · 판단</div>
+      <div class="row">
+        <div class="qvoice"><p>진짜로 눌렀는지 가짜로 눌렀는지 판단 없이 그냥 끝나. 그냥 6개 누르면 끝나!</p></div>
+        <div class="qfix"><p>카드를 누르면 판정 단계가 열려요. 「진짜! 전시대에 걸기」 또는 「가짜! 잡아내기」를 고르고, 틀리면 해치가 진실을 알려 줍니다. 6장을 전부 판정해야 라운드가 끝나요.</p></div>
+      </div>
+      <span class="qdone">반영 완료</span>
+    </div>
+
+    <div class="qitem">
+      <div class="qnum">QC 4 · 그림</div>
+      <div class="row">
+        <div class="qvoice"><p>각 카드는 svg로 디자인 할것!</p></div>
+        <div class="qfix"><p>경복궁 기와지붕, 보신각 종, 빈대떡, 시장 노점, 칼국수 젓가락, 자전거, 남산타워, DDP, 청계천, 세빛섬… 24장 카드마다 손그림 아이콘을 그려 넣었어요.</p></div>
+      </div>
+      <span class="qdone">반영 완료</span>
+    </div>
+
+    <div class="qitem">
+      <div class="qnum">QC 5 · 판정창</div>
+      <div class="row">
+        <div class="qvoice"><p>카드를 누르면 판정대가 카드 위에 나타나서 진실 거짓을 누르게 해줘!</p></div>
+        <div class="qfix"><p>왼쪽 판정대 박스를 없애고, 누른 카드 위에 판정창이 바로 떠오르게 했어요. 진짜는 초록, 가짜는 산홍 버튼!</p></div>
+      </div>
+      <span class="qdone">반영 완료</span>
+    </div>
+
+    <div class="qitem">
+      <div class="qnum">QC 6 · 해치</div>
+      <div class="row">
+        <div class="qvoice"><p>서울의 자랑이니까 해치 캐릭터 넣어줘!</p></div>
+        <div class="qfix"><p>서울의 수호동물 해치를 82px 크게 키우고, 게임 곳곳(로고·인트로·보드 배지·인증서·성적표)에 배치했어요. 라운드 완료 문구도 "해치 승인!"이에요.</p></div>
+      </div>
+      <span class="qdone">반영 완료</span>
+    </div>
+
+    <div class="qitem">
+      <div class="qnum">QC 7 · 성적표</div>
+      <div class="row">
+        <div class="qvoice"><p>마지막에 이거 잘했는지 정답률 성적표 다운로드!</p></div>
+        <div class="qfix"><p>엔딩에서 라운드별 판정 정답과 총 정답률(24판정)을 보여주고, 해치 인증 인쇄용 성적표 파일을 내려받을 수 있어요.</p></div>
+      </div>
+      <span class="qdone">반영 완료</span>
+    </div>
+  </div>
+
+  <div class="note">다음 시범 플레이에서 새 의견이 나오면 이 기록부에 이어서 쌓입니다.<br>고치면 여기에 남기는 약속이에요.</div>
+
+  <footer><a href="/">← 꺾꺾 게임공장</a> · 초등 4학년 수업용</footer>
+</div>
+</body>
+</html>

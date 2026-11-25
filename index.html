@@ -52,6 +52,16 @@ h1 .zz{color:var(--coral)}
 .gcard .tag{align-self:flex-start;font-size:12px;font-weight:800;border-radius:999px;padding:4px 12px}
 .tag.play{background:var(--mint-soft);color:var(--mint)}
 footer{margin-top:34px;text-align:center;color:var(--muted);font-size:13px;font-weight:700}
+.qc-strip{margin-top:18px;display:flex;align-items:center;gap:14px;background:var(--card);
+  border:2.5px solid var(--line);border-radius:18px;padding:14px 18px;text-decoration:none;
+  color:inherit;box-shadow:var(--shadow);transition:transform .15s}
+.qc-strip:hover{transform:translateY(-3px);border-color:var(--coral)}
+.qc-strip svg{width:46px;height:46px;flex:none}
+.qc-txt{flex:1;min-width:0}
+.qc-txt b{display:block;font-size:16px}
+.qc-txt span{display:block;font-size:13px;font-weight:700;color:var(--muted);margin-top:2px}
+.qc-strip em{font-style:normal;font-size:13px;font-weight:800;color:var(--purple-deep);
+  background:var(--purple-soft);border-radius:999px;padding:6px 14px;flex:none}
 </style>
 </head>
 <body>
@@ -116,6 +126,19 @@ footer{margin-top:34px;text-align:center;color:var(--muted);font-size:13px;font-
       <p>사회 · 방문객 요청서에 맞춰 서울 자랑 카드를 전시하고 가짜 자랑은 걸러내기.</p>
     </a>
   </div>
+
+  <a class="qc-strip" href="qc.html">
+    <svg viewBox="0 0 64 64" aria-hidden="true">
+      <path d="M32 4 l6 10 h-12 z" fill="#FFD35C" stroke="#E8A400" stroke-width="2" stroke-linejoin="round"/>
+      <path d="M13 30 q-5 8 0 16 M51 30 q5 8 0 16" fill="none" stroke="#FF8A7A" stroke-width="4" stroke-linecap="round"/>
+      <ellipse cx="32" cy="38" rx="20" ry="21" fill="#F5C445"/>
+      <ellipse cx="32" cy="45" rx="11.5" ry="12.5" fill="#FFEFC2"/>
+      <circle cx="25" cy="30" r="2.8" fill="#2E2849"/><circle cx="39" cy="30" r="2.8" fill="#2E2849"/>
+      <path d="M27 37 q5 4 10 0" fill="none" stroke="#2E2849" stroke-width="2.4" stroke-linecap="round"/>
+    </svg>
+    <div class="qc-txt"><b>우리 반 학생 QC 기록부</b><span>학생이 고쳐 달라고 한 7건, 이렇게 반영했어요</span></div>
+    <em>보기 →</em>
+  </a>
 
   <footer>초등 4학년 수업용 · 학생 개인정보 수집 없음</footer>
 </div>
