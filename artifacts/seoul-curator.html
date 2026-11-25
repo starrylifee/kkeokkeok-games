@@ -89,6 +89,17 @@ body{
 .stxt{flex:1;min-width:0}
 .stxt .sn,.stxt .sf{display:block}
 .scard.sel{border-color:var(--sun);background:#FFF9E8;box-shadow:0 0 0 3px var(--sun)}
+.scard-wrap{position:relative}
+.judge-pop{position:absolute;inset:-6px;z-index:6;border-radius:22px;background:rgba(46,40,73,.62);
+  display:flex;flex-direction:column;justify-content:center;gap:6px;padding:8px}
+.judge-pop[hidden]{display:none}
+.jp-q{color:#fff;font-size:12px;font-weight:800;text-align:center}
+.judge-pop .choice{background:#fff;font-size:13.5px;font-weight:800;padding:7px 8px;
+  text-align:center;margin:0;color:var(--ink)}
+.judge-pop .choice.jp-yes{border-color:var(--mint)}
+.judge-pop .choice.jp-yes:hover{background:var(--mint-soft)}
+.judge-pop .choice.jp-no{border-color:var(--coral)}
+.judge-pop .choice.jp-no:hover{background:var(--coral-soft)}
 .scard:hover{transform:translateY(-3px);border-color:var(--purple)}
 .scard .sn{font-size:17px;font-weight:800;color:var(--purple-deep)}
 .scard .sf{font-size:13.5px;font-weight:700;color:var(--ink);line-height:1.55}
@@ -355,10 +366,6 @@ body{
         </div>
       </div>
       <div class="box">
-        <div class="box-title">판정대</div>
-        <div id="judgeBox"></div>
-      </div>
-      <div class="box">
         <div id="mascotRow">
           <svg id="mascotBig" aria-hidden="true"><use href="#hatchSym"/></svg>
           <div class="bubble" id="bubble" role="status" aria-live="polite">안녕! 나는 서울의 수호동물 해치. 가짜 자랑은 못 넘어간다!</div>
@@ -552,18 +559,23 @@ function startRound(){
   grid.innerHTML = "";
   order.forEach(ci=>{
     const c = V.cards[ci];
+    const wrap = document.createElement("div");
+    wrap.className = "scard-wrap";
     const b = document.createElement("button");
     b.className = "scard"; b.type = "button"; b.dataset.ci = ci;
     b.innerHTML = '<svg class="cicon" viewBox="0 0 64 64" aria-hidden="true"><use href="#'+c.ic+'"/></svg>'+
       '<span class="stxt"><span class="sn">'+c.n+'</span><span class="sf">'+c.f+'</span></span>';
     b.addEventListener("click", onCardClick);
-    grid.appendChild(b);
+    const pop = document.createElement("div");
+    pop.className = "judge-pop"; pop.hidden = true; pop.dataset.ci = ci;
+    wrap.appendChild(b); wrap.appendChild(pop);
+    grid.appendChild(wrap);
   });
   resetJudge();
-  say(V.who + "가 왔어! 카드를 누르고 진짜 자랑인지 가짜인지 판정해 줘.", "cheer");
+  say(V.who + "가 왔어! 카드를 누르면 판정이 떠요. 진짜 자랑인지 가짜인지 골라 줘.", "cheer");
 }
 function resetJudge(){
-  $("judgeBox").innerHTML = '<p style="font-size:13.5px;font-weight:700;color:var(--muted);margin:0">카드를 누르면 판정할 수 있어요</p>';
+  document.querySelectorAll(".judge-pop").forEach(p=>p.hidden = true);
   document.querySelectorAll("#cardGrid .scard").forEach(b=>b.classList.remove("sel"));
   state.sel = null;
 }
@@ -572,25 +584,33 @@ function onCardClick(evt){
   const card = evt.currentTarget;
   if(card.classList.contains("hung") || card.classList.contains("fake")) return;
   const ci = +card.dataset.ci;
-  if(state.sel === ci) return;
+  const pop = document.querySelector('.judge-pop[data-ci="'+ci+'"]');
+  const wasOpen = !pop.hidden;
+  document.querySelectorAll(".judge-pop").forEach(p=>p.hidden = true);
+  if(wasOpen) return;
+  if(!pop.childElementCount){
+    const q = document.createElement("div");
+    q.className = "jp-q"; q.textContent = "진짜일까, 가짜일까?";
+    const b1 = document.createElement("button");
+    b1.className = "choice jp-yes"; b1.type = "button";
+    b1.textContent = "진짜! 전시대에 걸기";
+    b1.addEventListener("click", ev=>{ ev.stopPropagation(); judge(ci, true); });
+    const b2 = document.createElement("button");
+    b2.className = "choice jp-no"; b2.type = "button";
+    b2.textContent = "가짜! 잡아내기";
+    b2.addEventListener("click", ev=>{ ev.stopPropagation(); judge(ci, false); });
+    pop.appendChild(q); pop.appendChild(b1); pop.appendChild(b2);
+  }
+  pop.hidden = false;
+  card.classList.add("sel");
   state.sel = ci;
-  document.querySelectorAll("#cardGrid .scard").forEach(b=>b.classList.toggle("sel", b===card));
-  const c = V.cards[ci];
-  const jb = $("judgeBox");
-  jb.innerHTML = '<div class="box-title" style="margin-bottom:6px">'+c.n+'</div>'+
-    '<p style="font-size:13px;font-weight:700;color:var(--muted);margin:0 0 10px;line-height:1.5">'+c.f+'</p>';
-  const b1 = document.createElement("button");
-  b1.className = "choice"; b1.type = "button";
-  b1.style.display = "block"; b1.style.width = "100%"; b1.style.marginBottom = "8px";
-  b1.textContent = "전시대에 걸기 · 진짜 자랑";
-  b1.addEventListener("click", ()=>judge(ci, true));
-  const b2 = document.createElement("button");
-  b2.className = "choice"; b2.type = "button";
-  b2.style.display = "block"; b2.style.width = "100%";
-  b2.textContent = "가짜로 잡기 · 틀린 사실";
-  b2.addEventListener("click", ()=>judge(ci, false));
-  jb.appendChild(b1); jb.appendChild(b2);
 }
+/* 카드 밖을 누르면 판정이 접힌다 */
+document.addEventListener("click", evt=>{
+  if(!evt.target.closest(".scard-wrap")){
+    document.querySelectorAll(".judge-pop").forEach(p=>p.hidden = true);
+  }
+});
 
 function judge(ci, pickReal){
   const card = document.querySelector('#cardGrid .scard[data-ci="'+ci+'"]');
